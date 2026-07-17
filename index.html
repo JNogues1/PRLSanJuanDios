@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Plan de Obra · Hospital San Juan de Dios de Burgos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{
+  --ink:#1b1e23;
+  --ink-soft:#4a4f58;
+  --bg:#e9ebee;
+  --card:#ffffff;
+  --line:#d3d7dd;
+  --amber:#f2b705;
+  --c-obra:#d63424;
+  --c-riesgo:#e0a800;
+  --c-acopio:#a3641c;
+  --c-casetas:#1f6fb0;
+  --c-entrada:#1f9d55;
+  --c-epis:#0e7c86;
+  --c-vehiculos:#6b3fa0;
+  --c-peatonal:#5aa42c;
+  --radius:10px;
+  --shadow:0 2px 10px rgba(20,24,30,.14);
+  font-size:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Barlow',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:1rem}
+
+/* ---------- Cabecera ---------- */
+header{background:var(--ink);color:#fff;flex:none}
+.hd-top{display:flex;align-items:center;gap:.7rem;padding:.55rem .9rem .45rem}
+.hd-title{flex:1;min-width:0}
+.hd-title h1{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:1.15rem;line-height:1.1;letter-spacing:.02em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hd-title small{display:block;font-size:.72rem;color:#b8bdc6;font-weight:400;letter-spacing:.03em}
+.date-tag{
+  background:#fff;color:var(--ink);border-radius:6px;
+  padding:.25rem .6rem;text-align:center;line-height:1.05;flex:none;
+  border:2px solid var(--amber);
+}
+.date-tag .dow{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+.date-tag .dnum{font-family:'Barlow Condensed';font-weight:700;font-size:1.25rem}
+.date-tag input{position:absolute;opacity:0;width:0;height:0}
+.icon-btn{
+  width:2.4rem;height:2.4rem;border-radius:8px;flex:none;
+  display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);
+  font-size:1.1rem;
+}
+.icon-btn:active{background:rgba(255,255,255,.25)}
+/* Banda de balizamiento — firma visual */
+.chevrons{height:8px;background:repeating-linear-gradient(-45deg,var(--amber) 0 14px,var(--ink) 14px 28px)}
+
+/* ---------- Selector de planta ---------- */
+.floors{display:flex;background:var(--card);border-bottom:1px solid var(--line);flex:none;overflow-x:auto}
+.floor-btn{
+  flex:1;min-width:4.2rem;padding:.5rem .3rem .4rem;text-align:center;
+  font-family:'Barlow Condensed';font-weight:600;font-size:1rem;color:var(--ink-soft);
+  border-bottom:3px solid transparent;letter-spacing:.02em;white-space:nowrap;
+}
+.floor-btn.active{color:var(--ink);border-bottom-color:var(--amber);background:#faf8f2}
+.floor-btn .n{font-size:.65rem;display:block;font-family:'Barlow';font-weight:400;color:#8a8f98}
+
+/* ---------- Escenario del plano ---------- */
+#viewport{flex:1;position:relative;overflow:hidden;background:#dfe2e6;touch-action:none}
+#stage{position:absolute;top:0;left:0;transform-origin:0 0}
+#stage img{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+#overlay{position:absolute;inset:0;width:100%;height:100%}
+.zone{cursor:pointer;transition:filter .15s}
+.zone:hover{filter:brightness(1.12)}
+.zone.selected{filter:brightness(1.2)}
+.zone-label{
+  font-family:'Barlow Condensed';font-weight:600;fill:#fff;
+  paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:3px;
+  text-anchor:middle;pointer-events:none;
+}
+.vertex{fill:#fff;stroke:var(--ink);stroke-width:2;cursor:grab}
+.vertex.first{fill:var(--amber)}
+.draft-line{fill:rgba(242,183,5,.25);stroke:var(--amber);stroke-dasharray:8 5;stroke-width:2}
+
+.zoom-ctl{
+  position:absolute;right:.7rem;bottom:5.2rem;display:flex;flex-direction:column;gap:.4rem;z-index:5;
+}
+.zoom-ctl button{
+  width:2.6rem;height:2.6rem;background:var(--card);border-radius:8px;
+  box-shadow:var(--shadow);font-size:1.3rem;font-weight:600;color:var(--ink);
+}
+#emptyMsg{
+  position:absolute;inset:auto 0 6.2rem 0;text-align:center;z-index:4;pointer-events:none;
+}
+#emptyMsg span{
+  background:rgba(27,30,35,.85);color:#fff;padding:.45rem .9rem;border-radius:99px;font-size:.85rem;
+}
+
+/* ---------- Leyenda ---------- */
+#legend{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  background:var(--card);border-top:1px solid var(--line);
+  border-radius:14px 14px 0 0;box-shadow:0 -4px 16px rgba(20,24,30,.12);
+  transform:translateY(calc(100% - 2.5rem));transition:transform .25s ease;
+  max-height:60%;display:flex;flex-direction:column;
+}
+#legend.open{transform:translateY(0)}
+.legend-handle{
+  flex:none;padding:.4rem .9rem;display:flex;align-items:center;gap:.6rem;
+  font-family:'Barlow Condensed';font-weight:600;font-size:1.02rem;letter-spacing:.03em;text-transform:uppercase;
+  cursor:pointer;user-select:none;
+}
+.legend-handle::before{content:"";width:2.2rem;height:4px;border-radius:2px;background:var(--line);
+  position:absolute;left:50%;top:.35rem;transform:translateX(-50%)}
+.legend-handle .cnt{margin-left:auto;font-family:'Barlow';font-size:.8rem;font-weight:500;color:var(--ink-soft)}
+.legend-body{overflow-y:auto;padding:0 .9rem .9rem}
+.leg-item{
+  display:flex;align-items:center;gap:.6rem;padding:.42rem .4rem;border-radius:8px;
+  font-size:.92rem;cursor:pointer;user-select:none;
+}
+.leg-item.off{opacity:.35}
+.leg-item:active{background:var(--bg)}
+.swatch{width:1.5rem;height:1.1rem;border-radius:3px;flex:none;border:1.5px solid rgba(0,0,0,.35)}
+.leg-item .n{margin-left:auto;background:var(--bg);border-radius:99px;padding:.05rem .5rem;font-size:.78rem;color:var(--ink-soft)}
+
+/* ---------- Ficha de zona ---------- */
+#zoneCard{
+  position:absolute;left:.7rem;right:.7rem;bottom:3rem;z-index:7;
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:.8rem .9rem;display:none;border-left:6px solid var(--amber);
+}
+#zoneCard.show{display:block}
+#zoneCard .cat{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+#zoneCard h3{font-family:'Barlow Condensed';font-size:1.25rem;font-weight:700;margin:.1rem 0 .2rem}
+#zoneCard p{font-size:.9rem;color:var(--ink-soft);white-space:pre-wrap}
+#zoneCard .dates{font-size:.78rem;color:var(--ink-soft);margin-top:.35rem}
+#zoneCard .close{position:absolute;top:.3rem;right:.4rem;font-size:1.2rem;color:var(--ink-soft);padding:.3rem}
+#zoneCard .actions{display:flex;gap:.5rem;margin-top:.6rem}
+
+/* ---------- Botones genéricos ---------- */
+.btn{
+  padding:.5rem .95rem;border-radius:8px;font-weight:600;font-size:.9rem;
+  background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:.4rem;
+}
+.btn.secondary{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:var(--c-obra)}
+.btn.amber{background:var(--amber);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* ---------- Barra admin ---------- */
+#adminBar{
+  display:none;flex:none;background:#fff8e3;border-top:2px solid var(--amber);
+  padding:.5rem .7rem;gap:.5rem;align-items:center;overflow-x:auto;
+}
+body.admin #adminBar{display:flex}
+#adminBar .mode-ind{
+  font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;font-size:.95rem;
+  letter-spacing:.05em;flex:none;display:flex;align-items:center;gap:.35rem;
+}
+#adminBar .dot{width:.6rem;height:.6rem;border-radius:50%;background:var(--c-obra);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+#drawHint{
+  position:absolute;top:.6rem;left:50%;transform:translateX(-50%);z-index:8;
+  background:var(--ink);color:#fff;padding:.4rem .9rem;border-radius:99px;font-size:.82rem;
+  display:none;white-space:nowrap;box-shadow:var(--shadow);
+}
+
+/* ---------- Modales ---------- */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(20,24,30,.55);z-index:20;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:var(--card);width:100%;max-width:30rem;max-height:88vh;overflow-y:auto;
+  border-radius:14px 14px 0 0;padding:1rem 1rem 1.3rem;
+}
+@media(min-width:600px){.modal-bg{align-items:center}.modal{border-radius:14px}}
+.modal h2{font-family:'Barlow Condensed';font-weight:700;font-size:1.35rem;text-transform:uppercase;
+  letter-spacing:.03em;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem}
+.field{margin-bottom:.75rem}
+.field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.25rem;color:var(--ink-soft)}
+.field input,.field select,.field textarea{
+  width:100%;padding:.55rem .6rem;border:1px solid var(--line);border-radius:8px;background:#fff;
+}
+.field textarea{min-height:4rem;resize:vertical}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.cat-opt{
+  display:flex;align-items:center;gap:.5rem;padding:.5rem .55rem;border:1.5px solid var(--line);
+  border-radius:8px;font-size:.85rem;cursor:pointer;
+}
+.cat-opt input{display:none}
+.cat-opt.sel{border-color:var(--ink);background:var(--bg);font-weight:600}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.modal .foot{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap}
+.help{font-size:.78rem;color:var(--ink-soft);margin-top:.3rem;line-height:1.35}
+#qrBox{display:grid;place-items:center;padding:.8rem;background:#fff}
+#qrBox svg,#qrBox img{width:min(60vw,15rem);height:auto}
+.pin-dots{display:flex;gap:.6rem;justify-content:center;margin:.8rem 0}
+.pin-dots i{width:.85rem;height:.85rem;border-radius:50%;border:2px solid var(--ink);display:block}
+.pin-dots i.full{background:var(--ink)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;max-width:16rem;margin:0 auto}
+.pin-pad button{
+  padding:.8rem 0;font-size:1.3rem;font-weight:600;background:var(--bg);border-radius:10px;
+}
+.pin-pad button:active{background:var(--line)}
+.toast{
+  position:fixed;left:50%;bottom:5.5rem;transform:translateX(-50%);z-index:40;
+  background:var(--ink);color:#fff;padding:.55rem 1rem;border-radius:99px;font-size:.88rem;
+  box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1}
+.tag-obra{color:var(--c-obra)} .tag-riesgo{color:var(--c-riesgo)} .tag-acopio{color:var(--c-acopio)}
+.tag-casetas{color:var(--c-casetas)} .tag-entrada{color:var(--c-entrada)} .tag-epis{color:var(--c-epis)}
+.tag-vehiculos{color:var(--c-vehiculos)} .tag-peatonal{color:var(--c-peatonal)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd-top">
+    <div class="hd-title">
+      <h1>Plan de Obra · Hospital San Juan de Dios</h1>
+      <small>Paseo de la Isla, 3 · Burgos — Señalización diaria de zonas</small>
+    </div>
+    <label class="date-tag" id="dateTag" title="Cambiar fecha consultada">
+      <span class="dow" id="dateDow">HOY</span>
+      <span class="dnum" id="dateNum">–</span>
+      <input type="date" id="dateInput">
+    </label>
+    <button class="icon-btn" id="btnAdmin" title="Modo administrador" aria-label="Modo administrador">⚙</button>
+  </div>
+  <div class="chevrons" aria-hidden="true"></div>
+</header>
+
+<nav class="floors" id="floorTabs" aria-label="Selector de planta"></nav>
+
+<div id="viewport">
+  <div id="stage">
+    <img id="planImg" alt="Plano de planta">
+    <svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div id="drawHint">Toca el plano para añadir vértices · pulsa ✓ para cerrar la zona</div>
+
+  <div class="zoom-ctl">
+    <button id="zoomIn" aria-label="Acercar">＋</button>
+    <button id="zoomOut" aria-label="Alejar">－</button>
+    <button id="zoomFit" aria-label="Ajustar" style="font-size:.95rem">⤢</button>
+  </div>
+
+  <div id="emptyMsg" hidden><span>Sin zonas señalizadas para esta fecha en esta planta</span></div>
+
+  <div id="zoneCard">
+    <button class="close" id="zcClose" aria-label="Cerrar">✕</button>
+    <div class="cat" id="zcCat"></div>
+    <h3 id="zcName"></h3>
+    <p id="zcNotes"></p>
+    <div class="dates" id="zcDates"></div>
+    <div class="actions" id="zcActions" hidden>
+      <button class="btn secondary" id="zcEdit">✎ Editar</button>
+      <button class="btn warn" id="zcDelete">🗑 Eliminar</button>
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="legend-handle" id="legendHandle">
+      Leyenda <span class="cnt" id="legendCount"></span>
+    </div>
+    <div class="legend-body" id="legendBody"></div>
+  </div>
+</div>
+
+<div id="adminBar">
+  <span class="mode-ind"><span class="dot"></span>Admin</span>
+  <button class="btn amber" id="btnDraw">✎ Nueva zona</button>
+  <button class="btn secondary" id="btnFinish" hidden>✓ Cerrar zona</button>
+  <button class="btn secondary" id="btnCancelDraw" hidden>✕ Cancelar</button>
+  <button class="btn secondary" id="btnExport">⭳ Exportar</button>
+  <button class="btn secondary" id="btnImport">⭱ Importar</button>
+  <button class="btn secondary" id="btnPublish">☁ Publicar</button>
+  <button class="btn secondary" id="btnQR">▦ QR</button>
+  <button class="btn secondary" id="btnExitAdmin" style="margin-left:auto">Salir</button>
+  <input type="file" id="importFile" accept=".json" hidden>
+</div>
+
+<!-- Modal PIN -->
+<div class="modal-bg" id="pinModal">
+  <div class="modal" style="max-width:22rem">
+    <h2>⚙ Acceso administrador</h2>
+    <p class="help" style="text-align:center">Introduce el PIN de la dirección de obra</p>
+    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <div class="pin-pad" id="pinPad"></div>
+    <div class="foot"><button class="btn secondary" data-close>Cancelar</button></div>
+  </div>
+</div>
+
+<!-- Modal zona -->
+<div class="modal-bg" id="zoneModal">
+  <div class="modal">
+    <h2 id="zmTitle">Nueva zona</h2>
+    <div class="field">
+      <label>Categoría</label>
+      <div class="cat-grid" id="zmCats"></div>
+    </div>
+    <div class="field">
+      <label for="zmName">Nombre / estancia</label>
+      <input id="zmName" placeholder="Ej.: Habitación 214 · Ala este">
+    </div>
+    <div class="field">
+      <label for="zmNotes">Indicaciones para el personal</label>
+      <textarea id="zmNotes" placeholder="Ej.: Obligatorio casco y calzado de seguridad. Acceso restringido."></textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="zmFrom">Vigente desde</label>
+        <input type="date" id="zmFrom">
+      </div>
+      <div class="field">
+        <label for="zmTo">Hasta (vacío = indefinido)</label>
+        <input type="date" id="zmTo">
+      </div>
+    </div>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cancelar</button>
+      <button class="btn" id="zmSave">Guardar zona</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal publicar -->
+<div class="modal-bg" id="pubModal">
+  <div class="modal">
+    <h2>☁ Publicar en GitHub</h2>
+    <p class="help">Los cambios se guardan en <code>data/zonas.json</code> del repositorio. Necesitas un
+      <b>token de acceso</b> (fine-grained) con permiso de <i>Contents: Read &amp; Write</i> sobre el repositorio.
+      El token queda guardado solo en este dispositivo.</p>
+    <div class="row2">
+      <div class="field"><label>Usuario / organización</label><input id="ghOwner" placeholder="mi-usuario"></div>
+      <div class="field"><label>Repositorio</label><input id="ghRepo" placeholder="obra-hsjd"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Rama</label><input id="ghBranch" value="main"></div>
+      <div class="field"><label>Token</label><input id="ghToken" type="password" placeholder="github_pat_…"></div>
+    </div>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cancelar</button>
+      <button class="btn" id="pubGo">Publicar ahora</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal QR -->
+<div class="modal-bg" id="qrModal">
+  <div class="modal" style="max-width:24rem">
+    <h2>▦ Código QR de acceso</h2>
+    <p class="help">Imprime este código y colócalo en la entrada de la obra. Cualquier persona que lo
+      escanee verá las zonas señalizadas del día.</p>
+    <div id="qrBox"></div>
+    <div class="field" style="margin-top:.6rem">
+      <label>URL codificada</label>
+      <input id="qrUrl">
+    </div>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cerrar</button>
+      <button class="btn" id="qrPrint">🖨 Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Plan de Obra — Hospital San Juan de Dios de Burgos
+   Visor de zonas de obra sobre planos de planta + modo admin.
+   Coordenadas de zona normalizadas (0–1) respecto a la imagen,
+   para poder sustituir los planos por versiones de más resolución
+   sin perder las zonas dibujadas.
+   ============================================================ */
+
+const FLOORS = [
+  {id:"sotano",  label:"SÓT",  name:"Planta Sótano (−3,60)",  img:"planos/sotano.jpeg"},
+  {id:"baja",    label:"PB",   name:"Planta Baja (±0,00)",    img:"planos/baja.jpeg"},
+  {id:"primera", label:"P1",   name:"Planta Primera (+3,42)", img:"planos/primera.jpeg"},
+  {id:"segunda", label:"P2",   name:"Planta Segunda (+7,22)", img:"planos/segunda.jpeg"},
+  {id:"tercera", label:"P3",   name:"Planta Tercera (+11,02)",img:"planos/tercera.jpeg"},
+];
+
+const CATS = {
+  obra:      {name:"Zona en intervención", color:"#d63424", icon:"🚧"},
+  riesgo:    {name:"Zona de riesgo",       color:"#e0a800", icon:"⚠️"},
+  acopio:    {name:"Acopio de materiales", color:"#a3641c", icon:"📦"},
+  casetas:   {name:"Casetas y aseos",      color:"#1f6fb0", icon:"🚻"},
+  entrada:   {name:"Entrada al inmueble",  color:"#1f9d55", icon:"🚪"},
+  epis:      {name:"Equipos de protección",color:"#0e7c86", icon:"🦺"},
+  vehiculos: {name:"Paso de vehículos",    color:"#6b3fa0", icon:"🚚"},
+  peatonal:  {name:"Recorrido peatonal",   color:"#5aa42c", icon:"🚶"},
+};
+
+const LS_DATA = "obraHSJD.data";
+const LS_GH   = "obraHSJD.github";
+const LS_ADMIN= "obraHSJD.adminSession";
+const DEFAULT_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // PIN 1234
+
+let data = {version:1, updated:null, pinHash:DEFAULT_PIN_HASH, zones:[]};
+let state = {
+  floor: FLOORS[1].id,          // arranca en Planta Baja
+  date: todayISO(),
+  admin: false,
+  drawing: false,
+  draftPts: [],
+  selectedZone: null,
+  editingZone: null,            // zona en edición de vértices
+  hiddenCats: new Set(),
+  scale: 1, tx: 0, ty: 0,
+  imgW: 1316, imgH: 924,
+  dirty: false,
+};
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+function todayISO(){ return new Date().toLocaleDateString("sv-SE"); } // YYYY-MM-DD local
+function fmtDate(iso){
+  if(!iso) return "";
+  const d = new Date(iso+"T12:00:00");
+  return d.toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"});
+}
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+async function sha256(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function uid(){ return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function zoneActiveOn(z, iso){
+  if(z.from && iso < z.from) return false;
+  if(z.to && iso > z.to) return false;
+  return true;
+}
+
+/* ---------- carga de datos ---------- */
+async function loadData(){
+  // 1) intenta zonas.json del repositorio (fuente publicada)
+  let published = null;
+  try{
+    const r = await fetch("data/zonas.json?t="+Date.now(), {cache:"no-store"});
+    if(r.ok) published = await r.json();
+  }catch(e){ /* file:// o sin fichero aún */ }
+  // 2) borrador local (cambios sin publicar del admin)
+  let local = null;
+  try{ local = JSON.parse(localStorage.getItem(LS_DATA) || "null"); }catch(e){}
+  if(local && published){
+    // usa el más reciente
+    data = (local.updated||"") > (published.updated||"") ? local : published;
+    if(data === local) state.dirty = true;
+  } else {
+    data = local || published || data;
+    if(local && !published) state.dirty = true;
+  }
+  if(!data.zones) data.zones = [];
+  if(!data.pinHash) data.pinHash = DEFAULT_PIN_HASH;
+}
+function saveLocal(){
+  data.updated = new Date().toISOString();
+  localStorage.setItem(LS_DATA, JSON.stringify(data));
+  state.dirty = true;
+}
+
+/* ---------- pestañas de planta ---------- */
+function renderFloorTabs(){
+  const nav = $("#floorTabs"); nav.innerHTML = "";
+  FLOORS.forEach(f=>{
+    const b = document.createElement("button");
+    b.className = "floor-btn" + (f.id===state.floor?" active":"");
+    b.innerHTML = `${f.label}<span class="n">${f.name.replace(/^Planta /,"")}</span>`;
+    b.onclick = ()=>{ if(state.drawing) return toast("Termina o cancela el dibujo primero");
+      state.floor = f.id; state.selectedZone=null; hideZoneCard(); loadFloor(); renderFloorTabs(); };
+    nav.appendChild(b);
+  });
+}
+
+/* ---------- fecha ---------- */
+function renderDate(){
+  const d = new Date(state.date+"T12:00:00");
+  const isToday = state.date === todayISO();
+  $("#dateDow").textContent = isToday ? "HOY" : d.toLocaleDateString("es-ES",{weekday:"short"}).toUpperCase();
+  $("#dateNum").textContent = d.getDate() + " " + d.toLocaleDateString("es-ES",{month:"short"}).replace(".","").toUpperCase();
+  $("#dateInput").value = state.date;
+}
+$("#dateInput").addEventListener("change", e=>{
+  state.date = e.target.value || todayISO();
+  renderDate(); renderZones(); renderLegend();
+});
+
+/* ---------- carga del plano ---------- */
+function loadFloor(){
+  const f = FLOORS.find(x=>x.id===state.floor);
+  const img = $("#planImg");
+  img.onload = ()=>{
+    state.imgW = img.naturalWidth; state.imgH = img.naturalHeight;
+    const ov = $("#overlay");
+    ov.setAttribute("viewBox", `0 0 ${state.imgW} ${state.imgH}`);
+    ov.setAttribute("width", state.imgW); ov.setAttribute("height", state.imgH);
+    fitView(); renderZones(); renderLegend();
+  };
+  img.src = f.img;
+}
+
+/* ---------- pan & zoom ---------- */
+const vp = $("#viewport"), stage = $("#stage");
+function applyTransform(){
+  stage.style.transform = `translate(${state.tx}px,${state.ty}px) scale(${state.scale})`;
+}
+function fitView(){
+  const r = vp.getBoundingClientRect();
+  const s = Math.min(r.width/state.imgW, r.height/state.imgH) * 0.98;
+  state.scale = s;
+  state.tx = (r.width - state.imgW*s)/2;
+  state.ty = (r.height - state.imgH*s)/2;
+  applyTransform();
+}
+function zoomAt(cx, cy, factor){
+  const ns = Math.min(12, Math.max(0.15, state.scale*factor));
+  const k = ns/state.scale;
+  state.tx = cx - k*(cx - state.tx);
+  state.ty = cy - k*(cy - state.ty);
+  state.scale = ns; applyTransform();
+}
+$("#zoomIn").onclick = ()=>{const r=vp.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,1.35);};
+$("#zoomOut").onclick= ()=>{const r=vp.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,1/1.35);};
+$("#zoomFit").onclick= fitView;
+vp.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const r = vp.getBoundingClientRect();
+  zoomAt(e.clientX-r.left, e.clientY-r.top, e.deltaY<0 ? 1.15 : 1/1.15);
+},{passive:false});
+
+// punteros: arrastre para desplazar, pellizco para zoom
+const pointers = new Map();
+let panStart=null, pinchStart=null, moved=false, dragVertex=null, dragZone=null;
+
+vp.addEventListener("pointerdown", e=>{
+  vp.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
+  moved = false;
+  if(e.target.classList && e.target.classList.contains("vertex")){
+    dragVertex = {zoneId:e.target.dataset.zone, idx:+e.target.dataset.idx, draft:e.target.dataset.draft==="1"};
+    return;
+  }
+  if(pointers.size===1){
+    panStart = {x:e.clientX, y:e.clientY, tx:state.tx, ty:state.ty};
+  } else if(pointers.size===2){
+    const pts=[...pointers.values()];
+    pinchStart = {d:Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y), scale:state.scale,
+                  cx:(pts[0].x+pts[1].x)/2, cy:(pts[0].y+pts[1].y)/2, tx:state.tx, ty:state.ty};
+    panStart=null;
+  }
+});
+vp.addEventListener("pointermove", e=>{
+  if(!pointers.has(e.pointerId)) return;
+  const rec = pointers.get(e.pointerId);
+  rec.x = e.clientX; rec.y = e.clientY;
+  if(Math.hypot(e.clientX-rec.sx, e.clientY-rec.sy) > 5) moved = true;
+
+  if(dragVertex){
+    moved = true;
+    const p = clientToImg(e.clientX, e.clientY);
+    if(dragVertex.draft){
+      state.draftPts[dragVertex.idx] = p; renderDraft();
+    } else {
+      const z = data.zones.find(z=>z.id===dragVertex.zoneId);
+      if(z){ z.pts[dragVertex.idx] = [p[0]/state.imgW, p[1]/state.imgH]; renderZones(false); }
+    }
+    return;
+  }
+  if(pointers.size===2 && pinchStart){
+    const pts=[...pointers.values()];
+    const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+    const r=vp.getBoundingClientRect();
+    const factor=d/pinchStart.d;
+    const ns=Math.min(12,Math.max(0.15,pinchStart.scale*factor));
+    const k=ns/pinchStart.scale;
+    const cx=pinchStart.cx-r.left, cy=pinchStart.cy-r.top;
+    state.tx = cx - k*(cx - pinchStart.tx);
+    state.ty = cy - k*(cy - pinchStart.ty);
+    state.scale=ns; applyTransform();
+    return;
+  }
+  if(panStart){
+    state.tx = panStart.tx + (e.clientX-panStart.x);
+    state.ty = panStart.ty + (e.clientY-panStart.y);
+    applyTransform();
+  }
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(dragVertex){ if(!dragVertex.draft) saveLocal(); dragVertex=null; }
+  if(pointers.size<2) pinchStart=null;
+  if(pointers.size===0){
+    if(!moved && state.drawing){
+      const p = clientToImg(e.clientX, e.clientY);
+      // cerrar si toca cerca del primer vértice
+      if(state.draftPts.length>2){
+        const f = state.draftPts[0];
+        const dpx = Math.hypot((p[0]-f[0])*state.scale,(p[1]-f[1])*state.scale);
+        if(dpx < 14){ finishDraft(); panStart=null; return; }
+      }
+      state.draftPts.push(p); renderDraft();
+      $("#btnFinish").disabled = state.draftPts.length<3;
+    }
+    panStart=null;
+  }
+}
+vp.addEventListener("pointerup", endPointer);
+vp.addEventListener("pointercancel", endPointer);
+
+function clientToImg(cx, cy){
+  const r = vp.getBoundingClientRect();
+  return [ (cx - r.left - state.tx)/state.scale, (cy - r.top - state.ty)/state.scale ];
+}
+
+/* ---------- render de zonas ---------- */
+function svgEl(tag, attrs){
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+function ensureDefs(ov){
+  let defs = ov.querySelector("defs");
+  if(defs) return defs;
+  defs = svgEl("defs",{});
+  for(const key in CATS){
+    const p = svgEl("pattern",{id:"hatch-"+key, width:14, height:14,
+      patternUnits:"userSpaceOnUse", patternTransform:"rotate(45)"});
+    p.appendChild(svgEl("rect",{width:14,height:14,fill:CATS[key].color,"fill-opacity":.32}));
+    p.appendChild(svgEl("line",{x1:0,y1:0,x2:0,y2:14,stroke:CATS[key].color,"stroke-width":5,"stroke-opacity":.55}));
+    defs.appendChild(p);
+  }
+  ov.appendChild(defs);
+  return defs;
+}
+function visibleZones(){
+  return data.zones.filter(z =>
+    z.floor===state.floor &&
+    zoneActiveOn(z, state.date) &&
+    !state.hiddenCats.has(z.cat));
+}
+function renderZones(save=true){
+  const ov = $("#overlay");
+  ov.innerHTML = ""; ensureDefs(ov);
+  const zs = visibleZones();
+  $("#emptyMsg").hidden = zs.length>0 || state.drawing;
+
+  zs.forEach(z=>{
+    const ptsAbs = z.pts.map(p=>[p[0]*state.imgW, p[1]*state.imgH]);
+    const path = ptsAbs.map(p=>p.join(",")).join(" ");
+    const g = svgEl("g",{class:"zone"+(state.selectedZone===z.id?" selected":"")});
+    g.appendChild(svgEl("polygon",{points:path, fill:`url(#hatch-${z.cat})`,
+      stroke:CATS[z.cat].color, "stroke-width":3}));
+    // etiqueta en el centroide
+    const c = centroid(ptsAbs);
+    const label = svgEl("text",{x:c[0], y:c[1], class:"zone-label",
+      "font-size": Math.max(14, Math.min(26, polySize(ptsAbs)/8))});
+    label.textContent = CATS[z.cat].icon + (z.name ? " "+z.name : "");
+    g.appendChild(label);
+    g.addEventListener("pointerup", e=>{
+      if(moved || state.drawing) return;
+      e.stopPropagation();
+      selectZone(z.id);
+    });
+    ov.appendChild(g);
+    // asas de edición
+    if(state.admin && state.editingZone===z.id){
+      ptsAbs.forEach((p,i)=>{
+        ov.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(6,9/Math.sqrt(state.scale)),
+          class:"vertex","data-zone":z.id,"data-idx":i}));
+      });
+    }
+  });
+  renderDraft(false);
+  if(save===true){} // noop — firma homogénea
+}
+function centroid(pts){
+  let x=0,y=0; pts.forEach(p=>{x+=p[0];y+=p[1]}); return [x/pts.length, y/pts.length];
+}
+function polySize(pts){
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  return Math.min(Math.max(...xs)-Math.min(...xs), Math.max(...ys)-Math.min(...ys));
+}
+function renderDraft(clear=true){
+  const ov = $("#overlay");
+  ov.querySelectorAll(".draft").forEach(n=>n.remove());
+  if(!state.drawing || !state.draftPts.length) return;
+  const g = svgEl("g",{class:"draft"});
+  const path = state.draftPts.map(p=>p.join(",")).join(" ");
+  g.appendChild(svgEl(state.draftPts.length>2?"polygon":"polyline",{points:path, class:"draft-line"}));
+  state.draftPts.forEach((p,i)=>{
+    g.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(6,9/Math.sqrt(state.scale)),
+      class:"vertex"+(i===0?" first":""),"data-idx":i,"data-draft":"1"}));
+  });
+  ov.appendChild(g);
+}
+
+/* ---------- leyenda ---------- */
+function renderLegend(){
+  const body = $("#legendBody"); body.innerHTML="";
+  const counts = {};
+  data.zones.filter(z=>z.floor===state.floor && zoneActiveOn(z,state.date))
+            .forEach(z=>counts[z.cat]=(counts[z.cat]||0)+1);
+  let total=0;
+  for(const key in CATS){
+    const n = counts[key]||0; total+=n;
+    const div = document.createElement("div");
+    div.className = "leg-item"+(state.hiddenCats.has(key)?" off":"");
+    div.innerHTML = `<span class="swatch" style="background:repeating-linear-gradient(-45deg,${CATS[key].color}55 0 5px,${CATS[key].color} 5px 8px)"></span>
+      ${CATS[key].icon} ${CATS[key].name} <span class="n">${n}</span>`;
+    div.onclick = ()=>{
+      state.hiddenCats.has(key) ? state.hiddenCats.delete(key) : state.hiddenCats.add(key);
+      renderLegend(); renderZones();
+    };
+    body.appendChild(div);
+  }
+  $("#legendCount").textContent = total + (total===1?" zona":" zonas") + " · " +
+    FLOORS.find(f=>f.id===state.floor).name;
+}
+$("#legendHandle").onclick = ()=> $("#legend").classList.toggle("open");
+
+/* ---------- ficha de zona ---------- */
+function selectZone(id){
+  state.selectedZone = id;
+  const z = data.zones.find(z=>z.id===id);
+  if(!z) return;
+  $("#zcCat").textContent = CATS[z.cat].icon+" "+CATS[z.cat].name;
+  $("#zcCat").className = "cat tag-"+z.cat;
+  $("#zoneCard").style.borderLeftColor = CATS[z.cat].color;
+  $("#zcName").textContent = z.name || "(sin nombre)";
+  $("#zcNotes").textContent = z.notes || "";
+  $("#zcDates").textContent = "Vigencia: " + (z.from?fmtDate(z.from):"—") + " → " + (z.to?fmtDate(z.to):"indefinida");
+  $("#zcActions").hidden = !state.admin;
+  $("#zoneCard").classList.add("show");
+  renderZones();
+}
+function hideZoneCard(){
+  $("#zoneCard").classList.remove("show");
+  state.selectedZone=null; state.editingZone=null;
+  renderZones();
+}
+$("#zcClose").onclick = hideZoneCard;
+$("#zcDelete").onclick = ()=>{
+  if(!confirm("¿Eliminar esta zona señalizada?")) return;
+  data.zones = data.zones.filter(z=>z.id!==state.selectedZone);
+  saveLocal(); hideZoneCard(); renderZones(); renderLegend(); toast("Zona eliminada");
+};
+$("#zcEdit").onclick = ()=>{
+  const z = data.zones.find(z=>z.id===state.selectedZone);
+  if(!z) return;
+  state.editingZone = z.id;
+  openZoneModal(z);
+};
+
+/* ---------- dibujo ---------- */
+$("#btnDraw").onclick = ()=>{
+  state.drawing = true; state.draftPts = [];
+  hideZoneCard();
+  $("#drawHint").style.display="block";
+  $("#btnDraw").hidden = true;
+  $("#btnFinish").hidden = false; $("#btnFinish").disabled = true;
+  $("#btnCancelDraw").hidden = false;
+  renderZones();
+};
+function cancelDraft(){
+  state.drawing=false; state.draftPts=[];
+  $("#drawHint").style.display="none";
+  $("#btnDraw").hidden=false; $("#btnFinish").hidden=true; $("#btnCancelDraw").hidden=true;
+  renderZones();
+}
+$("#btnCancelDraw").onclick = cancelDraft;
+$("#btnFinish").onclick = ()=>{ if(state.draftPts.length>=3) finishDraft(); };
+function finishDraft(){
+  state.drawing=false;
+  $("#drawHint").style.display="none";
+  $("#btnDraw").hidden=false; $("#btnFinish").hidden=true; $("#btnCancelDraw").hidden=true;
+  openZoneModal(null); // nueva
+}
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && state.drawing) cancelDraft();
+});
+
+/* ---------- modal de zona ---------- */
+let zmCat = "obra";
+function buildCatGrid(){
+  const grid = $("#zmCats"); grid.innerHTML="";
+  for(const key in CATS){
+    const l = document.createElement("label");
+    l.className = "cat-opt"+(key===zmCat?" sel":"");
+    l.innerHTML = `<input type="radio" name="cat" value="${key}">
+      <span class="swatch" style="background:${CATS[key].color}"></span>${CATS[key].icon} ${CATS[key].name}`;
+    l.onclick = ()=>{ zmCat=key; buildCatGrid(); };
+    grid.appendChild(l);
+  }
+}
+function openZoneModal(zone){
+  zmCat = zone ? zone.cat : "obra";
+  buildCatGrid();
+  $("#zmTitle").textContent = zone ? "Editar zona" : "Nueva zona";
+  $("#zmName").value = zone ? (zone.name||"") : "";
+  $("#zmNotes").value = zone ? (zone.notes||"") : "";
+  $("#zmFrom").value = zone ? (zone.from||"") : state.date;
+  $("#zmTo").value = zone ? (zone.to||"") : "";
+  $("#zoneModal").classList.add("show");
+}
+$("#zmSave").onclick = ()=>{
+  const editing = state.editingZone && data.zones.find(z=>z.id===state.editingZone);
+  if(editing){
+    Object.assign(editing,{cat:zmCat, name:$("#zmName").value.trim(),
+      notes:$("#zmNotes").value.trim(), from:$("#zmFrom").value||null, to:$("#zmTo").value||null});
+    toast("Zona actualizada — arrastra los vértices para ajustar la forma");
+    setTimeout(()=>selectZone(editing.id), 50);
+  } else {
+    data.zones.push({
+      id:uid(), floor:state.floor, cat:zmCat,
+      name:$("#zmName").value.trim(), notes:$("#zmNotes").value.trim(),
+      from:$("#zmFrom").value||null, to:$("#zmTo").value||null,
+      pts: state.draftPts.map(p=>[+(p[0]/state.imgW).toFixed(5), +(p[1]/state.imgH).toFixed(5)]),
+    });
+    state.draftPts=[];
+    toast("Zona creada — recuerda Publicar");
+  }
+  saveLocal();
+  $("#zoneModal").classList.remove("show");
+  renderZones(); renderLegend();
+};
+
+/* ---------- PIN admin ---------- */
+let pinBuf = "";
+function buildPinPad(){
+  const pad = $("#pinPad"); pad.innerHTML="";
+  [1,2,3,4,5,6,7,8,9,"←",0,"C"].forEach(k=>{
+    const b = document.createElement("button");
+    b.textContent = k;
+    b.onclick = async ()=>{
+      if(k==="←") pinBuf = pinBuf.slice(0,-1);
+      else if(k==="C") pinBuf = "";
+      else if(pinBuf.length<4) pinBuf += k;
+      renderPinDots();
+      if(pinBuf.length===4){
+        const h = await sha256(pinBuf);
+        if(h === (data.pinHash||DEFAULT_PIN_HASH)){
+          sessionStorage.setItem(LS_ADMIN,"1");
+          enterAdmin(); $("#pinModal").classList.remove("show");
+        } else { toast("PIN incorrecto"); }
+        pinBuf=""; setTimeout(renderPinDots,150);
+      }
+    };
+    pad.appendChild(b);
+  });
+}
+function renderPinDots(){
+  [...$("#pinDots").children].forEach((d,i)=> d.classList.toggle("full", i<pinBuf.length));
+}
+$("#btnAdmin").onclick = ()=>{
+  if(state.admin) return;
+  if(sessionStorage.getItem(LS_ADMIN)==="1"){ enterAdmin(); return; }
+  pinBuf=""; renderPinDots(); buildPinPad();
+  $("#pinModal").classList.add("show");
+};
+function enterAdmin(){
+  state.admin = true; document.body.classList.add("admin");
+  toast("Modo administrador activo");
+  renderZones();
+}
+$("#btnExitAdmin").onclick = ()=>{
+  state.admin=false; document.body.classList.remove("admin");
+  sessionStorage.removeItem(LS_ADMIN);
+  cancelDraft(); hideZoneCard();
+};
+
+/* ---------- exportar / importar ---------- */
+$("#btnExport").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "zonas.json";
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("zonas.json descargado");
+};
+$("#btnImport").onclick = ()=> $("#importFile").click();
+$("#importFile").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d.zones)) throw new Error("formato");
+      data = d; saveLocal(); renderZones(); renderLegend();
+      toast("Datos importados ("+d.zones.length+" zonas)");
+    }catch(err){ toast("El fichero no es un zonas.json válido"); }
+  };
+  r.readAsText(f);
+  e.target.value = "";
+});
+
+/* ---------- publicar en GitHub ---------- */
+function ghSettings(){
+  try{ return JSON.parse(localStorage.getItem(LS_GH)||"{}"); }catch(e){ return {}; }
+}
+$("#btnPublish").onclick = ()=>{
+  const s = ghSettings();
+  $("#ghOwner").value = s.owner||""; $("#ghRepo").value = s.repo||"";
+  $("#ghBranch").value = s.branch||"main"; $("#ghToken").value = s.token||"";
+  $("#pubModal").classList.add("show");
+};
+$("#pubGo").onclick = async ()=>{
+  const s = {owner:$("#ghOwner").value.trim(), repo:$("#ghRepo").value.trim(),
+             branch:$("#ghBranch").value.trim()||"main", token:$("#ghToken").value.trim()};
+  if(!s.owner||!s.repo||!s.token) return toast("Faltan datos del repositorio");
+  localStorage.setItem(LS_GH, JSON.stringify(s));
+  const api = `https://api.github.com/repos/${s.owner}/${s.repo}/contents/data/zonas.json`;
+  const headers = {Authorization:"Bearer "+s.token, Accept:"application/vnd.github+json"};
+  try{
+    toast("Publicando…");
+    let sha = null;
+    const g = await fetch(api+"?ref="+s.branch,{headers});
+    if(g.ok) sha = (await g.json()).sha;
+    data.updated = new Date().toISOString();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
+    const body = {message:"Actualización de zonas de obra — "+state.date, content, branch:s.branch};
+    if(sha) body.sha = sha;
+    const p = await fetch(api,{method:"PUT",headers,body:JSON.stringify(body)});
+    if(!p.ok){ const err=await p.json().catch(()=>({})); throw new Error(err.message||p.status); }
+    localStorage.setItem(LS_DATA, JSON.stringify(data));
+    state.dirty = false;
+    $("#pubModal").classList.remove("show");
+    toast("Publicado ✓ — visible en unos segundos");
+  }catch(err){
+    toast("Error al publicar: "+err.message);
+  }
+};
+
+/* ---------- QR ---------- */
+$("#btnQR").onclick = ()=>{
+  const url = location.origin.startsWith("http") ? location.origin+location.pathname : location.href;
+  $("#qrUrl").value = url;
+  drawQR(url);
+  $("#qrModal").classList.add("show");
+};
+$("#qrUrl").addEventListener("input", e=> drawQR(e.target.value));
+function drawQR(text){
+  const box = $("#qrBox"); box.innerHTML="";
+  try{
+    const q = qrcode(0,"M"); q.addData(text); q.make();
+    box.innerHTML = q.createSvgTag({cellSize:6, margin:2});
+  }catch(e){ box.textContent = "URL demasiado larga"; }
+}
+$("#qrPrint").onclick = ()=>{
+  const w = window.open("","_blank");
+  w.document.write(`<html><head><title>QR acceso obra</title></head>
+    <body style="font-family:sans-serif;text-align:center;padding:2rem">
+    <h2 style="text-transform:uppercase">Plan de obra — zonas del día</h2>
+    <p>Escanea para ver las zonas señalizadas de hoy</p>
+    ${$("#qrBox").innerHTML}
+    <p style="font-size:.8rem;color:#555">${$("#qrUrl").value}</p>
+    </body></html>`);
+  w.document.close(); w.print();
+};
+
+/* ---------- cierre de modales ---------- */
+document.querySelectorAll(".modal-bg").forEach(m=>{
+  m.addEventListener("pointerdown", e=>{ if(e.target===m) m.classList.remove("show"); });
+  m.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> m.classList.remove("show"));
+});
+
+/* ---------- arranque ---------- */
+(async function init(){
+  state.date = todayISO();
+  renderDate();
+  await loadData();
+  renderFloorTabs();
+  loadFloor();
+  window.addEventListener("resize", fitView);
+  if(new URLSearchParams(location.search).get("admin")==="1") $("#btnAdmin").click();
+})();
+</script>
+</body>
+</html>

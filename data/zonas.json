@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "updated": "2026-07-17T08:00:00.000Z",
+  "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+  "zones": [
+    {
+      "id": "ej-entrada-pb",
+      "floor": "baja",
+      "cat": "entrada",
+      "name": "Acceso principal",
+      "notes": "Entrada de personal y visitas. Registro obligatorio en el control de acceso.",
+      "from": null,
+      "to": null,
+      "pts": [[0.405, 0.50], [0.465, 0.50], [0.465, 0.565], [0.405, 0.565]]
+    },
+    {
+      "id": "ej-vehiculos-pb",
+      "floor": "baja",
+      "cat": "vehiculos",
+      "name": "Rampa de acceso rodado",
+      "notes": "Paso de vehículos de obra 8:00–10:00. Prohibido el paso peatonal durante maniobras.",
+      "from": null,
+      "to": null,
+      "pts": [[0.30, 0.60], [0.36, 0.60], [0.40, 0.80], [0.33, 0.80]]
+    },
+    {
+      "id": "ej-obra-p1",
+      "floor": "primera",
+      "cat": "obra",
+      "name": "Ala este — habitaciones en reforma",
+      "notes": "Zona en intervención (recintos marcados 1–15). Acceso solo personal autorizado con EPI completo.",
+      "from": null,
+      "to": null,
+      "pts": [[0.630, 0.42], [0.755, 0.42], [0.755, 0.79], [0.630, 0.79]]
+    },
+    {
+      "id": "ej-epis-p1",
+      "floor": "primera",
+      "cat": "epis",
+      "name": "Punto de EPIs y extintor",
+      "notes": "Cascos, gafas y chalecos disponibles. Extintor 21A-113B revisado.",
+      "from": null,
+      "to": null,
+      "pts": [[0.600, 0.40], [0.628, 0.40], [0.628, 0.46], [0.600, 0.46]]
+    },
+    {
+      "id": "ej-acopio-pb",
+      "floor": "baja",
+      "cat": "acopio",
+      "name": "Acopio de materiales — patio este",
+      "notes": "Palets y sacos de escombro. No apilar por encima de 1,5 m.",
+      "from": null,
+      "to": null,
+      "pts": [[0.80, 0.62], [0.90, 0.62], [0.90, 0.76], [0.80, 0.76]]
+    },
+    {
+      "id": "ej-casetas-pb",
+      "floor": "baja",
+      "cat": "casetas",
+      "name": "Casetas de obra y aseos",
+      "notes": "Vestuario, comedor y aseo químico del personal de obra.",
+      "from": null,
+      "to": null,
+      "pts": [[0.055, 0.62], [0.135, 0.62], [0.135, 0.72], [0.055, 0.72]]
+    }
+  ]
+}
