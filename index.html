@@ -51,11 +51,11 @@ header{background:var(--ink);color:#fff;flex:none}
 .date-tag{
   background:#fff;color:var(--ink);border-radius:6px;
   padding:.25rem .6rem;text-align:center;line-height:1.05;flex:none;
-  border:2px solid var(--amber);
+  border:2px solid var(--amber);display:block;
 }
-.date-tag .dow{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
-.date-tag .dnum{font-family:'Barlow Condensed';font-weight:700;font-size:1.25rem}
-.date-tag input{position:absolute;opacity:0;width:0;height:0}
+.date-tag .dow{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+.date-tag .dnum{display:block;font-family:'Barlow Condensed';font-weight:700;font-size:1.25rem}
+#dateInput{position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
 .icon-btn{
   width:2.4rem;height:2.4rem;border-radius:8px;flex:none;
   display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);
@@ -234,12 +234,12 @@ body.admin #adminBar{display:flex}
       <h1>Plan de Obra · Hospital San Juan de Dios</h1>
       <small>Paseo de la Isla, 3 · Burgos — Señalización diaria de zonas</small>
     </div>
-    <label class="date-tag" id="dateTag" title="Cambiar fecha consultada">
+    <button type="button" class="date-tag" id="dateTag" title="Cambiar fecha consultada">
       <span class="dow" id="dateDow">HOY</span>
       <span class="dnum" id="dateNum">–</span>
-      <input type="date" id="dateInput">
-    </label>
-    <button class="icon-btn" id="btnAdmin" title="Modo administrador" aria-label="Modo administrador">⚙</button>
+    </button>
+    <input type="date" id="dateInput" tabindex="-1" aria-hidden="true">
+    <button class="icon-btn" id="btnAdmin" title="Modo administrador" aria-label="Modo administrador" hidden>⚙</button>
   </div>
   <div class="chevrons" aria-hidden="true"></div>
 </header>
@@ -299,8 +299,8 @@ body.admin #adminBar{display:flex}
 <div class="modal-bg" id="pinModal">
   <div class="modal" style="max-width:22rem">
     <h2>⚙ Acceso administrador</h2>
-    <p class="help" style="text-align:center">Introduce el PIN de la dirección de obra</p>
-    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <p class="help" style="text-align:center">Introduce el PIN de la dirección de obra (4–8 dígitos)</p>
+    <div class="pin-dots" id="pinDots"></div>
     <div class="pin-pad" id="pinPad"></div>
     <div class="foot"><button class="btn secondary" data-close>Cancelar</button></div>
   </div>
@@ -392,11 +392,13 @@ body.admin #adminBar{display:flex}
    ============================================================ */
 
 const FLOORS = [
-  {id:"sotano",  label:"SÓT",  name:"Planta Sótano (−3,60)",  img:"planos/sotano.jpeg"},
-  {id:"baja",    label:"PB",   name:"Planta Baja (±0,00)",    img:"planos/baja.jpeg"},
-  {id:"primera", label:"P1",   name:"Planta Primera (+3,42)", img:"planos/primera.jpeg"},
-  {id:"segunda", label:"P2",   name:"Planta Segunda (+7,22)", img:"planos/segunda.jpeg"},
-  {id:"tercera", label:"P3",   name:"Planta Tercera (+11,02)",img:"planos/tercera.jpeg"},
+  {id:"sotano",   label:"SÓT", name:"Planta Sótano (−3,60)",             img:"planos/sotano.jpeg"},
+  {id:"baja",     label:"PB",  name:"Planta Baja reformada (±0,00)",     img:"planos/baja.jpeg"},
+  {id:"primera",  label:"P1",  name:"Planta Primera reformada (+3,42)",  img:"planos/primera.jpeg"},
+  {id:"segunda",  label:"P2",  name:"Planta Segunda reformada (+7,22)",  img:"planos/segunda.jpeg"},
+  {id:"tercera",  label:"P3",  name:"Planta Tercera reformada (+11,02)", img:"planos/tercera.jpeg"},
+  {id:"cubierta", label:"BC",  name:"Bajo Cubierta (+14,06)",            img:"planos/cubierta.jpeg"},
+  {id:"cubiertas",label:"CUB", name:"Cubiertas (+17,03)",                img:"planos/cubiertas.jpeg"},
 ];
 
 const CATS = {
@@ -416,6 +418,7 @@ const LS_ADMIN= "obraHSJD.adminSession";
 const DEFAULT_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // PIN 1234
 
 let data = {version:1, updated:null, pinHash:DEFAULT_PIN_HASH, zones:[]};
+let ROOMS = {}; // catálogo de estancias por planta: {floor:[{n,a,x,y}]}
 let state = {
   floor: FLOORS[1].id,          // arranca en Planta Baja
   date: todayISO(),
@@ -455,6 +458,11 @@ function zoneActiveOn(z, iso){
 
 /* ---------- carga de datos ---------- */
 async function loadData(){
+  // catálogo de estancias (nombres extraídos de los planos vectoriales)
+  try{
+    const r = await fetch("data/estancias.json");
+    if(r.ok) ROOMS = await r.json();
+  }catch(e){ /* opcional */ }
   // 1) intenta zonas.json del repositorio (fuente publicada)
   let published = null;
   try{
@@ -506,6 +514,13 @@ $("#dateInput").addEventListener("change", e=>{
   state.date = e.target.value || todayISO();
   renderDate(); renderZones(); renderLegend();
 });
+$("#dateTag").addEventListener("click", ()=>{
+  const inp = $("#dateInput");
+  inp.style.pointerEvents = "auto";
+  try{ inp.showPicker(); }
+  catch(err){ inp.focus(); inp.click(); }
+  setTimeout(()=>{ inp.style.pointerEvents="none"; }, 500);
+});
 
 /* ---------- carga del plano ---------- */
 function loadFloor(){
@@ -553,11 +568,14 @@ vp.addEventListener("wheel", e=>{
 // punteros: arrastre para desplazar, pellizco para zoom
 const pointers = new Map();
 let panStart=null, pinchStart=null, moved=false, dragVertex=null, dragZone=null;
+let downTarget=null, downType="mouse";
 
 vp.addEventListener("pointerdown", e=>{
   vp.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
   moved = false;
+  downTarget = e.target;
+  downType = e.pointerType || "mouse";
   if(e.target.classList && e.target.classList.contains("vertex")){
     dragVertex = {zoneId:e.target.dataset.zone, idx:+e.target.dataset.idx, draft:e.target.dataset.draft==="1"};
     return;
@@ -575,7 +593,8 @@ vp.addEventListener("pointermove", e=>{
   if(!pointers.has(e.pointerId)) return;
   const rec = pointers.get(e.pointerId);
   rec.x = e.clientX; rec.y = e.clientY;
-  if(Math.hypot(e.clientX-rec.sx, e.clientY-rec.sy) > 5) moved = true;
+  const tol = downType==="touch" ? 12 : 5;
+  if(Math.hypot(e.clientX-rec.sx, e.clientY-rec.sy) > tol) moved = true;
 
   if(dragVertex){
     moved = true;
@@ -612,18 +631,33 @@ function endPointer(e){
   if(dragVertex){ if(!dragVertex.draft) saveLocal(); dragVertex=null; }
   if(pointers.size<2) pinchStart=null;
   if(pointers.size===0){
-    if(!moved && state.drawing){
+    const onStage = downTarget && (downTarget.closest ? (downTarget.closest("#stage")||downTarget===vp) : false);
+    if(!moved && state.drawing && onStage){
       const p = clientToImg(e.clientX, e.clientY);
-      // cerrar si toca cerca del primer vértice
+      // cerrar si toca cerca del primer vértice (umbral mayor con el dedo)
       if(state.draftPts.length>2){
         const f = state.draftPts[0];
         const dpx = Math.hypot((p[0]-f[0])*state.scale,(p[1]-f[1])*state.scale);
-        if(dpx < 14){ finishDraft(); panStart=null; return; }
+        if(dpx < (downType==="touch" ? 26 : 14)){ finishDraft(); panStart=null; return; }
       }
       state.draftPts.push(p); renderDraft();
       $("#btnFinish").disabled = state.draftPts.length<3;
     }
-    panStart=null;
+    else if(!moved && !state.drawing && onStage){
+      // selección de zona por geometría: los eventos capturados nunca
+      // llegan al polígono en pantallas táctiles, así que resolvemos
+      // aquí qué zona contiene el punto tocado
+      const [ix,iy] = clientToImg(e.clientX, e.clientY);
+      const nx = ix/state.imgW, ny = iy/state.imgH;
+      const zs = visibleZones();
+      let hit = null;
+      for(let i=zs.length-1;i>=0;i--){          // la última dibujada, encima
+        if(pointInPoly(nx, ny, zs[i].pts)){ hit = zs[i]; break; }
+      }
+      if(hit) selectZone(hit.id);
+      else if(state.selectedZone) hideZoneCard();
+    }
+    panStart=null; downTarget=null;
   }
 }
 vp.addEventListener("pointerup", endPointer);
@@ -678,16 +712,12 @@ function renderZones(save=true){
       "font-size": Math.max(14, Math.min(26, polySize(ptsAbs)/8))});
     label.textContent = CATS[z.cat].icon + (z.name ? " "+z.name : "");
     g.appendChild(label);
-    g.addEventListener("pointerup", e=>{
-      if(moved || state.drawing) return;
-      e.stopPropagation();
-      selectZone(z.id);
-    });
+    // la selección se resuelve por geometría en endPointer (compatible táctil)
     ov.appendChild(g);
     // asas de edición
     if(state.admin && state.editingZone===z.id){
       ptsAbs.forEach((p,i)=>{
-        ov.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(6,9/Math.sqrt(state.scale)),
+        ov.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(9,14/Math.sqrt(state.scale)),
           class:"vertex","data-zone":z.id,"data-idx":i}));
       });
     }
@@ -710,7 +740,7 @@ function renderDraft(clear=true){
   const path = state.draftPts.map(p=>p.join(",")).join(" ");
   g.appendChild(svgEl(state.draftPts.length>2?"polygon":"polyline",{points:path, class:"draft-line"}));
   state.draftPts.forEach((p,i)=>{
-    g.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(6,9/Math.sqrt(state.scale)),
+    g.appendChild(svgEl("circle",{cx:p[0],cy:p[1],r:Math.max(9,14/Math.sqrt(state.scale)),
       class:"vertex"+(i===0?" first":""),"data-idx":i,"data-draft":"1"}));
   });
   ov.appendChild(g);
@@ -814,11 +844,35 @@ function buildCatGrid(){
     grid.appendChild(l);
   }
 }
+/* ---------- estancias dentro de un polígono ---------- */
+function pointInPoly(x, y, pts){
+  let inside = false;
+  for(let i=0, j=pts.length-1; i<pts.length; j=i++){
+    const [xi,yi]=pts[i], [xj,yj]=pts[j];
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function roomsInDraft(){
+  const rooms = ROOMS[state.floor]; if(!rooms) return [];
+  const poly = state.draftPts.map(p=>[p[0]/state.imgW, p[1]/state.imgH]);
+  return rooms.filter(r=>pointInPoly(r.x, r.y, poly));
+}
+
 function openZoneModal(zone){
   zmCat = zone ? zone.cat : "obra";
   buildCatGrid();
   $("#zmTitle").textContent = zone ? "Editar zona" : "Nueva zona";
-  $("#zmName").value = zone ? (zone.name||"") : "";
+  let prefill = "";
+  if(!zone && state.draftPts.length){
+    const inside = roomsInDraft();
+    if(inside.length){
+      prefill = inside.slice(0,3).map(r=>r.n).join(" · ");
+      if(inside.length>3) prefill += ` (+${inside.length-3} estancias)`;
+      toast(inside.length + (inside.length===1?" estancia detectada":" estancias detectadas") + " en la zona");
+    }
+  }
+  $("#zmName").value = zone ? (zone.name||"") : prefill;
   $("#zmNotes").value = zone ? (zone.notes||"") : "";
   $("#zmFrom").value = zone ? (zone.from||"") : state.date;
   $("#zmTo").value = zone ? (zone.to||"") : "";
@@ -850,28 +904,41 @@ $("#zmSave").onclick = ()=>{
 let pinBuf = "";
 function buildPinPad(){
   const pad = $("#pinPad"); pad.innerHTML="";
-  [1,2,3,4,5,6,7,8,9,"←",0,"C"].forEach(k=>{
+  [1,2,3,4,5,6,7,8,9,"←",0,"✓"].forEach(k=>{
     const b = document.createElement("button");
     b.textContent = k;
     b.onclick = async ()=>{
-      if(k==="←") pinBuf = pinBuf.slice(0,-1);
-      else if(k==="C") pinBuf = "";
-      else if(pinBuf.length<4) pinBuf += k;
-      renderPinDots();
-      if(pinBuf.length===4){
+      if(k==="←"){ pinBuf = pinBuf.slice(0,-1); }
+      else if(k==="✓"){
+        if(pinBuf.length<4) return toast("El PIN tiene al menos 4 dígitos");
         const h = await sha256(pinBuf);
+        pinBuf="";
+        renderPinDots();
         if(h === (data.pinHash||DEFAULT_PIN_HASH)){
           sessionStorage.setItem(LS_ADMIN,"1");
           enterAdmin(); $("#pinModal").classList.remove("show");
         } else { toast("PIN incorrecto"); }
-        pinBuf=""; setTimeout(renderPinDots,150);
+        return;
       }
+      else if(pinBuf.length<8){ pinBuf += k; }
+      renderPinDots();
     };
     pad.appendChild(b);
   });
 }
 function renderPinDots(){
-  [...$("#pinDots").children].forEach((d,i)=> d.classList.toggle("full", i<pinBuf.length));
+  const box = $("#pinDots");
+  box.innerHTML = "";
+  const n = Math.max(4, pinBuf.length);
+  for(let i=0;i<n;i++){
+    const d = document.createElement("i");
+    if(i<pinBuf.length) d.classList.add("full");
+    box.appendChild(d);
+  }
+}
+function adminAllowed(){
+  return new URLSearchParams(location.search).get("admin")==="1"
+      || sessionStorage.getItem(LS_ADMIN)==="1";
 }
 $("#btnAdmin").onclick = ()=>{
   if(state.admin) return;
@@ -954,7 +1021,8 @@ $("#pubGo").onclick = async ()=>{
 
 /* ---------- QR ---------- */
 $("#btnQR").onclick = ()=>{
-  const url = location.origin.startsWith("http") ? location.origin+location.pathname : location.href;
+  // URL pública del visor, siempre sin parámetros (nunca ?admin=1)
+  const url = (location.origin.startsWith("http") ? location.origin : "") + location.pathname;
   $("#qrUrl").value = url;
   drawQR(url);
   $("#qrModal").classList.add("show");
@@ -993,7 +1061,13 @@ document.querySelectorAll(".modal-bg").forEach(m=>{
   renderFloorTabs();
   loadFloor();
   window.addEventListener("resize", fitView);
-  if(new URLSearchParams(location.search).get("admin")==="1") $("#btnAdmin").click();
+  // El acceso de administración solo se muestra llegando con ?admin=1
+  // (o con una sesión de administrador ya iniciada). Los visitantes del QR
+  // ven únicamente el visor.
+  if(adminAllowed()){
+    $("#btnAdmin").hidden = false;
+    if(sessionStorage.getItem(LS_ADMIN)!=="1") $("#btnAdmin").click();
+  }
 })();
 </script>
 </body>
