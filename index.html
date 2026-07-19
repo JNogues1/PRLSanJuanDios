@@ -57,6 +57,17 @@ header{background:var(--ink);color:#fff;flex:none}
 .date-tag .dow{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
 .date-tag .dnum{display:block;font-family:'Barlow Condensed';font-weight:700;font-size:1.25rem}
 #dateInput{position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.brand{
+  flex:none;display:flex;align-items:center;background:#fff;border-radius:6px;
+  padding:.28rem .55rem;height:2.15rem;overflow:hidden;
+}
+.brand.has-img{background:none;padding:0;height:2.3rem;border-radius:6px}
+.brand img{height:100%;width:auto;display:block;border-radius:6px}
+.brand .brand-txt{
+  font-family:'Barlow Condensed';font-weight:700;font-size:1.05rem;letter-spacing:.06em;
+  color:#e2001a;line-height:1;
+}
+.brand.has-img .brand-txt{display:none}
 .icon-btn{
   width:2.4rem;height:2.4rem;border-radius:8px;flex:none;
   display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);
@@ -311,6 +322,9 @@ body.admin #adminBar{display:flex}
 
 <header>
   <div class="hd-top">
+    <span class="brand" id="brandBox"><img id="brandLogo" src="assets/logo.png" alt="Ferrovial"
+      onload="document.getElementById('brandBox').classList.add('has-img')"
+      onerror="this.remove()"><span class="brand-txt">FERROVIAL</span></span>
     <div class="hd-title">
       <h1>Plan de Obra · Hospital San Juan de Dios</h1>
       <small>Paseo de la Isla, 3 · Burgos — Señalización diaria de zonas</small>
@@ -473,6 +487,7 @@ body.admin #adminBar{display:flex}
   <div class="modal" style="max-width:22rem">
     <h2>⚙ Acceso administrador</h2>
     <p class="help" style="text-align:center">Introduce el PIN de la dirección de obra (4–8 dígitos)</p>
+    <p class="help" style="text-align:center;opacity:.55" id="pinVer"></p>
     <div class="pin-dots" id="pinDots"></div>
     <div class="pin-pad" id="pinPad"></div>
     <div class="foot"><button class="btn secondary" data-close>Cancelar</button></div>
@@ -632,6 +647,7 @@ function catOf(key){
 const LS_DATA = "obraHSJD.data";
 const LS_GH   = "obraHSJD.github";
 const LS_ADMIN= "obraHSJD.adminSession";
+const APP_VERSION = "v9";
 const DEFAULT_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // PIN 1234
 
 let data = {version:1, updated:null, pinHash:DEFAULT_PIN_HASH, zones:[]};
@@ -1208,12 +1224,14 @@ function renderPinDots(){
   }
 }
 function isDesktop(){
-  // Bloquea móviles y tablets por plataforma; cualquier ordenador pasa,
-  // independientemente del tamaño de ventana o del zoom del navegador.
+  // Edición permitida en ordenadores y tablets; bloqueada solo en teléfonos,
+  // donde dibujar polígonos con precisión no es viable. Inmune al zoom,
+  // al tamaño de ventana y a las peculiaridades de Safari/Apple Silicon.
   const ua = navigator.userAgent;
-  const mobileUA = /Android|iPhone|iPod|iPad|Mobile|Tablet/i.test(ua);
-  const iPadOS = /Mac/.test(ua) && navigator.maxTouchPoints > 1; // iPad camuflado de Mac
-  return !mobileUA && !iPadOS;
+  const isPhone = /iPhone|iPod|Windows Phone/i.test(ua)
+               || (/Android/i.test(ua) && /Mobile/i.test(ua));
+  const smallScreen = Math.min(screen.width, screen.height) < 600;
+  return !isPhone && !smallScreen;
 }
 function adminAllowed(){
   return isDesktop() &&
@@ -1221,10 +1239,11 @@ function adminAllowed(){
          || sessionStorage.getItem(LS_ADMIN)==="1");
 }
 $("#btnAdmin").onclick = ()=>{
-  if(!isDesktop()){ toast("La edición solo está disponible desde un ordenador"); return; }
+  if(!isDesktop()){ toast("La edición está disponible desde ordenador o tablet, no desde teléfono"); return; }
   if(state.admin) return;
   if(sessionStorage.getItem(LS_ADMIN)==="1"){ enterAdmin(); return; }
   pinBuf=""; renderPinDots(); buildPinPad();
+  $("#pinVer").textContent = "Plan de Obra "+APP_VERSION;
   $("#pinModal").classList.add("show");
 };
 function enterAdmin(){
@@ -1571,14 +1590,16 @@ document.querySelectorAll(".modal-bg").forEach(m=>{
   renderFloorTabs();
   loadFloor();
   window.addEventListener("resize", fitView);
-  // El acceso de administración solo se muestra llegando con ?admin=1
-  // (o con una sesión de administrador ya iniciada). Los visitantes del QR
-  // ven únicamente el visor.
-  if(adminAllowed()){
+  // El engranaje se muestra en ordenadores y tablets (la edición real queda
+  // tras el PIN y, para publicar, tras el token de GitHub). Los teléfonos
+  // ven únicamente el visor. Con ?admin=1 el PIN se abre automáticamente.
+  if(isDesktop()){
     $("#btnAdmin").hidden = false;
-    if(sessionStorage.getItem(LS_ADMIN)!=="1") $("#btnAdmin").click();
-  } else if(new URLSearchParams(location.search).get("admin")==="1" && !isDesktop()){
-    toast("La edición solo está disponible desde un ordenador");
+    if(new URLSearchParams(location.search).get("admin")==="1"
+       && sessionStorage.getItem(LS_ADMIN)!=="1") $("#btnAdmin").click();
+    if(sessionStorage.getItem(LS_ADMIN)==="1") { /* sesión previa: entrar al pulsar */ }
+  } else if(new URLSearchParams(location.search).get("admin")==="1"){
+    toast("La edición está disponible desde ordenador o tablet, no desde teléfono");
   }
 })();
 </script>
