@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Plan de Obra · Hospital San Juan de Dios de Burgos</title>
+<title>PRL · Hospital San Juan de Dios de Burgos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
@@ -326,7 +326,7 @@ body.admin #adminBar{display:flex}
       onload="document.getElementById('brandBox').classList.add('has-img')"
       onerror="this.remove()"><span class="brand-txt">FERROVIAL</span></span>
     <div class="hd-title">
-      <h1>Plan de Obra · Hospital San Juan de Dios</h1>
+      <h1>PRL · Hospital San Juan de Dios</h1>
       <small>Paseo de la Isla, 3 · Burgos — Señalización diaria de zonas</small>
     </div>
     <button type="button" class="date-tag" id="dateTag" title="Cambiar fecha consultada">
@@ -581,7 +581,7 @@ body.admin #adminBar{display:flex}
 <script>
 "use strict";
 /* ============================================================
-   Plan de Obra — Hospital San Juan de Dios de Burgos
+   PRL — Hospital San Juan de Dios de Burgos
    Visor de zonas de obra sobre planos de planta + modo admin.
    Coordenadas de zona normalizadas (0–1) respecto a la imagen,
    para poder sustituir los planos por versiones de más resolución
@@ -647,7 +647,7 @@ function catOf(key){
 const LS_DATA = "obraHSJD.data";
 const LS_GH   = "obraHSJD.github";
 const LS_ADMIN= "obraHSJD.adminSession";
-const APP_VERSION = "v9";
+const APP_VERSION = "v10";
 const DEFAULT_PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // PIN 1234
 
 let data = {version:1, updated:null, pinHash:DEFAULT_PIN_HASH, zones:[]};
@@ -1243,7 +1243,7 @@ $("#btnAdmin").onclick = ()=>{
   if(state.admin) return;
   if(sessionStorage.getItem(LS_ADMIN)==="1"){ enterAdmin(); return; }
   pinBuf=""; renderPinDots(); buildPinPad();
-  $("#pinVer").textContent = "Plan de Obra "+APP_VERSION;
+  $("#pinVer").textContent = "PRL "+APP_VERSION;
   $("#pinModal").classList.add("show");
 };
 function enterAdmin(){
@@ -1348,7 +1348,7 @@ $("#qrPrint").onclick = ()=>{
   const w = window.open("","_blank");
   w.document.write(`<html><head><title>QR acceso obra</title></head>
     <body style="font-family:sans-serif;text-align:center;padding:2rem">
-    <h2 style="text-transform:uppercase">Plan de obra — zonas del día</h2>
+    <h2 style="text-transform:uppercase">PRL — zonas del día</h2>
     <p>Escanea para ver las zonas señalizadas de hoy</p>
     ${$("#qrBox").innerHTML}
     <p style="font-size:.8rem;color:#555">${$("#qrUrl").value}</p>
@@ -1555,7 +1555,7 @@ function renderList(){
     const d=document.createElement("div"); d.className="list-head-print";
     $("#listModal .modal").prepend(d); return d;
   })();
-  head.innerHTML = `<h2 style="margin:0">Plan de obra — Hospital San Juan de Dios de Burgos</h2>
+  head.innerHTML = `<h2 style="margin:0">PRL — Hospital San Juan de Dios de Burgos</h2>
     <div style="font-size:.85rem">Listado de zonas señalizadas · ${vig?("vigentes el "+fmtDate(state.date)):"todas las zonas"} · ${rows.length} zonas</div>`;
 }
 $("#btnList").onclick = openList;

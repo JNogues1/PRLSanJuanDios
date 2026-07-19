@@ -1,9 +1,15 @@
-# Plan de Obra · Hospital San Juan de Dios de Burgos
+# PRL · Hospital San Juan de Dios de Burgos
 
 Visor web de las zonas de obra señalizadas cada día sobre los planos de planta del hospital.
 Cualquier persona que escanee el código QR de la entrada ve las zonas vigentes **para ese día**:
 zona en intervención, riesgos, acopios, casetas y aseos, entradas, equipos de protección,
 paso de vehículos y recorridos peatonales.
+
+## Logotipo de empresa
+
+La cabecera muestra el logotipo situado en `assets/logo.png` (súbelo tú con el
+archivo oficial de marca de Ferrovial). Si el fichero no existe, se muestra el
+nombre «FERROVIAL» en texto como respaldo.
 
 ## Estructura
 
@@ -44,9 +50,9 @@ tocar una zona despliega su ficha (categoría, indicaciones, vigencia), botón *
 las plantas apiladas en isométrica (tocar una planta la abre; arrastrar gira la vista)
 y botón **☰ Listado** con la tabla imprimible de zonas.
 
-**Modo administrador**: disponible **únicamente desde un navegador de escritorio**
-(puntero de precisión + pantalla ≥1000 px). En móviles y tablets la edición no existe,
-ni siquiera con `?admin=1`.
+**Modo administrador**: disponible desde **ordenadores y tablets** (iPad incluido).
+En teléfonos la edición no existe, ni siquiera con `?admin=1` — la pantalla es
+demasiado pequeña para dibujar polígonos con precisión.
 
 ## Listado imprimible (ambos modos)
 
@@ -57,10 +63,12 @@ categoría y por vigencia en la fecha consultada, e imprimir con formato limpio.
 
 ## Uso diario (administrador)
 
-El acceso de administración **no es visible para los visitantes**: solo aparece si
-abres la app con `?admin=1` al final de la URL, por ejemplo
-`https://TU-USUARIO.github.io/obra-hsjd/?admin=1`. Guarda esa dirección en
-favoritos; el QR de la entrada nunca la incluye.
+En ordenadores y tablets el engranaje ⚙ de la cabecera está siempre visible
+(la edición queda protegida por el PIN y, para publicar, por el token de GitHub).
+En teléfonos no existe. Añadir `?admin=1` a la URL simplemente abre el PIN
+automáticamente. El PIN muestra la versión de la app (p. ej. «v10»): si tras
+actualizar el repositorio no ves la versión nueva, fuerza la recarga del
+navegador (⌘⇧R en Safari/Chrome de Mac, Ctrl+F5 en Windows).
 
 1. Abre la URL de administración e introduce el PIN (4–8 dígitos). **PIN inicial: 1234 — cámbialo antes de publicar.**
 2. Pulsa **✎ Nueva zona**, marca los vértices del recinto y cierra con **✓**.
