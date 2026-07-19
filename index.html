@@ -1208,10 +1208,12 @@ function renderPinDots(){
   }
 }
 function isDesktop(){
-  // Edición solo desde escritorio: puntero de precisión + hover real + pantalla ancha.
-  return matchMedia("(pointer:fine)").matches
-      && matchMedia("(hover:hover)").matches
-      && window.innerWidth >= 1000;
+  // Bloquea móviles y tablets por plataforma; cualquier ordenador pasa,
+  // independientemente del tamaño de ventana o del zoom del navegador.
+  const ua = navigator.userAgent;
+  const mobileUA = /Android|iPhone|iPod|iPad|Mobile|Tablet/i.test(ua);
+  const iPadOS = /Mac/.test(ua) && navigator.maxTouchPoints > 1; // iPad camuflado de Mac
+  return !mobileUA && !iPadOS;
 }
 function adminAllowed(){
   return isDesktop() &&
@@ -1575,6 +1577,8 @@ document.querySelectorAll(".modal-bg").forEach(m=>{
   if(adminAllowed()){
     $("#btnAdmin").hidden = false;
     if(sessionStorage.getItem(LS_ADMIN)!=="1") $("#btnAdmin").click();
+  } else if(new URLSearchParams(location.search).get("admin")==="1" && !isDesktop()){
+    toast("La edición solo está disponible desde un ordenador");
   }
 })();
 </script>
