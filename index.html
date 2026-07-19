@@ -749,6 +749,7 @@ function loadFloor(){
     ov.setAttribute("viewBox", `0 0 ${state.imgW} ${state.imgH}`);
     ov.setAttribute("width", state.imgW); ov.setAttribute("height", state.imgH);
     fitView(); renderZones(); renderLegend();
+    if(pendingSelect){ const id=pendingSelect; pendingSelect=null; selectZone(id); }
   };
   img.src = f.img;
 }
@@ -788,6 +789,10 @@ let panStart=null, pinchStart=null, moved=false, dragVertex=null, dragZone=null;
 let downTarget=null, downType="mouse";
 
 vp.addEventListener("pointerdown", e=>{
+  // Los gestos que empiezan sobre la interfaz (ficha, zoom, leyenda…) no se
+  // capturan: capturarlos desviaría sus eventos al visor y los botones
+  // dejarían de recibir el click en algunos navegadores.
+  if(e.target.closest && e.target.closest("#zoneCard, .zoom-ctl, #legend, #drawHint")) return;
   vp.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
   moved = false;
@@ -844,6 +849,7 @@ vp.addEventListener("pointermove", e=>{
   }
 });
 function endPointer(e){
+  if(!pointers.has(e.pointerId)) return; // gesto iniciado sobre la interfaz
   pointers.delete(e.pointerId);
   if(dragVertex){ if(!dragVertex.draft) saveLocal(); dragVertex=null; }
   if(pointers.size<2) pinchStart=null;
@@ -1472,6 +1478,7 @@ isoScene.addEventListener("pointermove", e=>{
 
 /* ---------- listado imprimible ---------- */
 let listSort = {key:"floor", dir:1};
+let pendingSelect = null;
 function floorIdx(id){ const i=FLOORS.findIndex(f=>f.id===id); return i<0?99:i; }
 function openList(){
   const sf=$("#lfFloor"), sc=$("#lfCat");
@@ -1503,6 +1510,19 @@ function renderList(){
         (z.recs&&z.recs.length)?`<div class="recs">🦺 ${z.recs.join(" · ")}</div>`:""}</td>
       <td>${z.from?fmtDate(z.from):"—"}</td>
       <td>${z.to?fmtDate(z.to):"indefinida"}</td>`;
+    tr.style.cursor = "pointer";
+    tr.title = "Abrir en el plano";
+    tr.addEventListener("click", ()=>{
+      $("#listModal").classList.remove("show");
+      if(state.floor !== z.floor){
+        state.floor = z.floor;
+        renderFloorTabs();
+        pendingSelect = z.id;
+        loadFloor();
+      } else {
+        selectZone(z.id);
+      }
+    });
     tb.appendChild(tr);
   });
   // flechas de ordenación
