@@ -28,6 +28,7 @@
   font-size:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
 html,body{height:100%}
 body{
   font-family:'Barlow',system-ui,-apple-system,sans-serif;
@@ -223,6 +224,86 @@ body.admin #adminBar{display:flex}
 .tag-obra{color:var(--c-obra)} .tag-riesgo{color:var(--c-riesgo)} .tag-acopio{color:var(--c-acopio)}
 .tag-casetas{color:var(--c-casetas)} .tag-entrada{color:var(--c-entrada)} .tag-epis{color:var(--c-epis)}
 .tag-vehiculos{color:var(--c-vehiculos)} .tag-peatonal{color:var(--c-peatonal)}
+
+/* ---------- Vista 3D isométrica ---------- */
+#iso3d{position:fixed;inset:0;z-index:15;background:#22252a;display:flex;flex-direction:column}
+.iso-top{
+  display:flex;align-items:center;gap:.7rem;padding:.55rem .9rem;color:#fff;flex-wrap:wrap;
+  border-bottom:4px solid var(--amber);
+}
+.iso-top strong{font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.iso-hint{font-size:.78rem;color:#b8bdc6;flex:1}
+.iso-scene{flex:1;perspective:1600px;display:grid;place-items:center;overflow:hidden;touch-action:none}
+.iso-stack{
+  position:relative;width:min(78vw,560px);aspect-ratio:1.45;
+  transform-style:preserve-3d;
+}
+.iso-floor{
+  position:absolute;inset:0;transform-style:preserve-3d;cursor:pointer;
+}
+.iso-sheet{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;
+  background:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,.5), 0 14px 30px rgba(0,0,0,.45);
+  border-radius:4px;
+}
+.iso-sheet img{display:block;width:100%;height:auto;border-radius:4px}
+.iso-sheet svg{position:absolute;inset:0;width:100%;height:100%}
+.iso-tag{
+  position:absolute;left:-.4rem;top:50%;transform:translate(-100%,-50%);
+  font-family:'Barlow Condensed';font-weight:700;font-size:1rem;color:#fff;
+  background:var(--ink);border:2px solid var(--amber);border-radius:6px;padding:.1rem .5rem;
+  white-space:nowrap;
+}
+.iso-floor:hover .iso-sheet{box-shadow:0 0 0 3px var(--amber), 0 14px 30px rgba(0,0,0,.5)}
+
+/* ---------- Listado ---------- */
+.list-controls{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.7rem}
+.list-controls select{padding:.4rem .5rem;border:1px solid var(--line);border-radius:8px;background:#fff}
+.chk{display:flex;align-items:center;gap:.35rem;font-size:.85rem;color:var(--ink-soft)}
+.list-wrap{overflow:auto;max-height:55vh;border:1px solid var(--line);border-radius:8px}
+#listTable{width:100%;border-collapse:collapse;font-size:.88rem}
+#listTable th{
+  position:sticky;top:0;background:var(--ink);color:#fff;text-align:left;
+  padding:.5rem .6rem;cursor:pointer;user-select:none;white-space:nowrap;
+  font-family:'Barlow Condensed';font-weight:600;letter-spacing:.03em;
+}
+#listTable th .arrow{font-size:.7rem;opacity:.8}
+#listTable td{padding:.45rem .6rem;border-top:1px solid var(--line);vertical-align:top}
+#listTable tbody tr:nth-child(even){background:#f6f7f8}
+#listTable .catcell{white-space:nowrap;font-weight:600}
+#listTable .swatch{width:.9rem;height:.9rem;display:inline-block;vertical-align:-2px;margin-right:.35rem}
+#listTable .notes{font-size:.78rem;color:var(--ink-soft)}
+.subh{font-family:'Barlow Condensed';font-weight:600;font-size:1.05rem;text-transform:uppercase;
+  letter-spacing:.03em;margin:.9rem 0 .5rem;border-top:1px solid var(--line);padding-top:.8rem}
+.list-head-print{display:none}
+
+/* ---------- Recomendaciones S+S ---------- */
+.recs-box{
+  max-height:10.5rem;overflow-y:auto;border:1px solid var(--line);border-radius:8px;
+  padding:.3rem .45rem;background:#fff;
+}
+.rec-item{display:flex;align-items:flex-start;gap:.45rem;padding:.22rem .1rem;font-size:.85rem;cursor:pointer}
+.rec-item input{margin-top:.2rem;accent-color:var(--ink);flex:none}
+.rec-item.custom{color:#8a5a00}
+.rec-add{display:flex;gap:.4rem;margin-top:.45rem}
+.rec-add input{flex:1;padding:.45rem .55rem;border:1px solid var(--line);border-radius:8px}
+#zcRecs{list-style:none;margin:.4rem 0 0;display:grid;gap:.2rem}
+#zcRecs li{
+  font-size:.84rem;display:flex;gap:.4rem;align-items:flex-start;line-height:1.3;
+}
+#zcRecs li::before{content:"🦺";font-size:.8rem;flex:none}
+#listTable .recs{font-size:.76rem;color:#8a5a00;margin-top:.15rem}
+
+@media print{
+  body.printing-list > :not(#listModal){display:none !important}
+  body.printing-list #listModal{position:static;display:block !important;background:none}
+  body.printing-list #listModal .modal{max-width:100%;width:100%;max-height:none;box-shadow:none;border-radius:0;padding:0}
+  body.printing-list .list-controls, body.printing-list #listModal .foot{display:none !important}
+  body.printing-list .list-wrap{max-height:none;overflow:visible;border:none}
+  body.printing-list .list-head-print{display:block;margin-bottom:.6rem}
+  #listTable th{position:static;background:#000;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #listTable .swatch{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -239,6 +320,7 @@ body.admin #adminBar{display:flex}
       <span class="dnum" id="dateNum">–</span>
     </button>
     <input type="date" id="dateInput" tabindex="-1" aria-hidden="true">
+    <button class="icon-btn" id="btnList" title="Listado imprimible de zonas" aria-label="Listado de zonas">☰</button>
     <button class="icon-btn" id="btnAdmin" title="Modo administrador" aria-label="Modo administrador" hidden>⚙</button>
   </div>
   <div class="chevrons" aria-hidden="true"></div>
@@ -255,6 +337,7 @@ body.admin #adminBar{display:flex}
   <div id="drawHint">Toca el plano para añadir vértices · pulsa ✓ para cerrar la zona</div>
 
   <div class="zoom-ctl">
+    <button id="btn3d" aria-label="Vista 3D" style="font-size:.9rem;font-weight:700">3D</button>
     <button id="zoomIn" aria-label="Acercar">＋</button>
     <button id="zoomOut" aria-label="Alejar">－</button>
     <button id="zoomFit" aria-label="Ajustar" style="font-size:.95rem">⤢</button>
@@ -267,6 +350,7 @@ body.admin #adminBar{display:flex}
     <div class="cat" id="zcCat"></div>
     <h3 id="zcName"></h3>
     <p id="zcNotes"></p>
+    <ul id="zcRecs"></ul>
     <div class="dates" id="zcDates"></div>
     <div class="actions" id="zcActions" hidden>
       <button class="btn secondary" id="zcEdit">✎ Editar</button>
@@ -287,12 +371,101 @@ body.admin #adminBar{display:flex}
   <button class="btn amber" id="btnDraw">✎ Nueva zona</button>
   <button class="btn secondary" id="btnFinish" hidden>✓ Cerrar zona</button>
   <button class="btn secondary" id="btnCancelDraw" hidden>✕ Cancelar</button>
+  <button class="btn secondary" id="btnNewCat">➕ Categoría</button>
+  <button class="btn secondary" id="btnPlanos">🗺 Planos</button>
   <button class="btn secondary" id="btnExport">⭳ Exportar</button>
   <button class="btn secondary" id="btnImport">⭱ Importar</button>
   <button class="btn secondary" id="btnPublish">☁ Publicar</button>
   <button class="btn secondary" id="btnQR">▦ QR</button>
   <button class="btn secondary" id="btnExitAdmin" style="margin-left:auto">Salir</button>
   <input type="file" id="importFile" accept=".json" hidden>
+</div>
+
+<!-- Vista 3D isométrica -->
+<div id="iso3d" hidden>
+  <div class="iso-top">
+    <strong>Vista 3D — plantas apiladas</strong>
+    <span class="iso-hint">Toca una planta para abrirla · arrastra para girar</span>
+    <button class="btn secondary" id="isoClose">✕ Cerrar</button>
+  </div>
+  <div class="iso-scene" id="isoScene">
+    <div class="iso-stack" id="isoStack"></div>
+  </div>
+</div>
+
+<!-- Modal listado imprimible -->
+<div class="modal-bg" id="listModal">
+  <div class="modal" style="max-width:60rem">
+    <h2>☰ Listado de zonas señalizadas</h2>
+    <div class="list-controls">
+      <select id="lfFloor"><option value="">Todas las plantas</option></select>
+      <select id="lfCat"><option value="">Todas las categorías</option></select>
+      <label class="chk"><input type="checkbox" id="lfVigentes" checked> Solo vigentes en la fecha consultada</label>
+    </div>
+    <div class="list-wrap">
+      <table id="listTable">
+        <thead><tr>
+          <th data-k="floor">Planta <span class="arrow"></span></th>
+          <th data-k="cat">Categoría <span class="arrow"></span></th>
+          <th data-k="name">Zona <span class="arrow"></span></th>
+          <th data-k="from">Desde <span class="arrow"></span></th>
+          <th data-k="to">Hasta <span class="arrow"></span></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cerrar</button>
+      <button class="btn" id="listPrint">🖨 Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nueva categoría -->
+<div class="modal-bg" id="catModal">
+  <div class="modal" style="max-width:26rem">
+    <h2>➕ Nueva categoría de zona</h2>
+    <div class="field"><label for="ncName">Nombre</label>
+      <input id="ncName" placeholder="Ej.: Zona de ruido elevado"></div>
+    <div class="row2">
+      <div class="field"><label for="ncIcon">Icono (emoji)</label>
+        <input id="ncIcon" placeholder="🔊" maxlength="4"></div>
+      <div class="field"><label for="ncColor">Color</label>
+        <input type="color" id="ncColor" value="#c2185b" style="height:2.6rem;padding:.2rem"></div>
+    </div>
+    <p class="help">La categoría queda disponible en la leyenda y en el formulario de zonas.
+      Recuerda <b>Publicar</b> para que la vean los visitantes.</p>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cancelar</button>
+      <button class="btn" id="ncSave">Crear categoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal gestión de planos -->
+<div class="modal-bg" id="planModal">
+  <div class="modal" style="max-width:30rem">
+    <h2>🗺 Planos de planta</h2>
+    <p class="help">Subir un plano lo publica directamente en el repositorio de GitHub, por lo que
+      requiere tener configurado el token en <b>☁ Publicar</b>.</p>
+    <h3 class="subh">Añadir planta nueva</h3>
+    <div class="row2">
+      <div class="field"><label for="npLabel">Etiqueta corta</label><input id="npLabel" placeholder="P5" maxlength="4"></div>
+      <div class="field"><label for="npName">Nombre</label><input id="npName" placeholder="Planta Quinta (+18,00)"></div>
+    </div>
+    <div class="field"><label for="npFile">Imagen del plano (JPG/PNG)</label>
+      <input type="file" id="npFile" accept="image/jpeg,image/png"></div>
+    <div class="foot" style="margin-top:.2rem"><button class="btn" id="npAdd">⬆ Subir y publicar planta</button></div>
+    <h3 class="subh">Reemplazar plano de una planta existente</h3>
+    <div class="field"><label for="rpFloor">Planta</label><select id="rpFloor"></select></div>
+    <div class="field"><label for="rpFile">Nueva imagen (JPG/PNG)</label>
+      <input type="file" id="rpFile" accept="image/jpeg,image/png"></div>
+    <p class="help">Las zonas dibujadas se conservan si el nuevo plano mantiene el mismo encuadre.</p>
+    <div class="foot">
+      <button class="btn secondary" data-close>Cerrar</button>
+      <button class="btn" id="rpGo">⬆ Reemplazar y publicar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal PIN -->
@@ -320,7 +493,16 @@ body.admin #adminBar{display:flex}
     </div>
     <div class="field">
       <label for="zmNotes">Indicaciones para el personal</label>
-      <textarea id="zmNotes" placeholder="Ej.: Obligatorio casco y calzado de seguridad. Acceso restringido."></textarea>
+      <textarea id="zmNotes" placeholder="Ej.: Coordinar el acceso con el jefe de obra. Horario de trabajos ruidosos 10:00–13:00."></textarea>
+    </div>
+    <div class="field">
+      <label>Recomendaciones de seguridad y salud</label>
+      <div class="recs-box" id="zmRecs"></div>
+      <div class="rec-add">
+        <input id="zmNewRec" placeholder="Añadir recomendación personalizada…">
+        <button class="btn secondary" id="zmAddRec" type="button">＋</button>
+      </div>
+      <p class="help">Las personalizadas quedan guardadas y reutilizables en futuras zonas.</p>
     </div>
     <div class="row2">
       <div class="field">
@@ -391,17 +573,18 @@ body.admin #adminBar{display:flex}
    sin perder las zonas dibujadas.
    ============================================================ */
 
-const FLOORS = [
-  {id:"sotano",   label:"SÓT", name:"Planta Sótano (−3,60)",             img:"planos/sotano.jpeg"},
-  {id:"baja",     label:"PB",  name:"Planta Baja reformada (±0,00)",     img:"planos/baja.jpeg"},
-  {id:"primera",  label:"P1",  name:"Planta Primera reformada (+3,42)",  img:"planos/primera.jpeg"},
-  {id:"segunda",  label:"P2",  name:"Planta Segunda reformada (+7,22)",  img:"planos/segunda.jpeg"},
-  {id:"tercera",  label:"P3",  name:"Planta Tercera reformada (+11,02)", img:"planos/tercera.jpeg"},
-  {id:"cubierta", label:"BC",  name:"Bajo Cubierta (+14,06)",            img:"planos/cubierta.jpeg"},
-  {id:"cubiertas",label:"CUB", name:"Cubiertas (+17,03)",                img:"planos/cubiertas.jpeg"},
+const DEFAULT_FLOORS = [
+  {id:"sotano",   label:"SÓT", name:"Planta Sótano (−3,60)",             img:"planos/sotano.jpeg",   thumb:"planos/thumbs/sotano.jpeg"},
+  {id:"baja",     label:"PB",  name:"Planta Baja reformada (±0,00)",     img:"planos/baja.jpeg",     thumb:"planos/thumbs/baja.jpeg"},
+  {id:"primera",  label:"P1",  name:"Planta Primera reformada (+3,42)",  img:"planos/primera.jpeg",  thumb:"planos/thumbs/primera.jpeg"},
+  {id:"segunda",  label:"P2",  name:"Planta Segunda reformada (+7,22)",  img:"planos/segunda.jpeg",  thumb:"planos/thumbs/segunda.jpeg"},
+  {id:"tercera",  label:"P3",  name:"Planta Tercera reformada (+11,02)", img:"planos/tercera.jpeg",  thumb:"planos/thumbs/tercera.jpeg"},
+  {id:"cubierta", label:"BC",  name:"Bajo Cubierta (+14,06)",            img:"planos/cubierta.jpeg", thumb:"planos/thumbs/cubierta.jpeg"},
+  {id:"cubiertas",label:"CUB", name:"Cubiertas (+17,03)",                img:"planos/cubiertas.jpeg",thumb:"planos/thumbs/cubiertas.jpeg"},
 ];
+let FLOORS = DEFAULT_FLOORS.slice();
 
-const CATS = {
+const BUILTIN_CATS = {
   obra:      {name:"Zona en intervención", color:"#d63424", icon:"🚧"},
   riesgo:    {name:"Zona de riesgo",       color:"#e0a800", icon:"⚠️"},
   acopio:    {name:"Acopio de materiales", color:"#a3641c", icon:"📦"},
@@ -411,6 +594,40 @@ const CATS = {
   vehiculos: {name:"Paso de vehículos",    color:"#6b3fa0", icon:"🚚"},
   peatonal:  {name:"Recorrido peatonal",   color:"#5aa42c", icon:"🚶"},
 };
+let CATS = Object.assign({}, BUILTIN_CATS);
+
+// Recomendaciones genéricas de seguridad y salud (RD 1627/1997 y entorno hospitalario)
+const BUILTIN_RECS = [
+  "Casco de seguridad obligatorio",
+  "Calzado de seguridad obligatorio",
+  "Gafas de protección obligatorias",
+  "Guantes de protección obligatorios",
+  "Protección auditiva obligatoria",
+  "Mascarilla FFP2 obligatoria (polvo)",
+  "Chaleco de alta visibilidad obligatorio",
+  "Arnés y línea de vida obligatorios (trabajos en altura)",
+  "Prohibido el paso a personal no autorizado",
+  "Prohibido fumar y llamas abiertas",
+  "Atención: riesgo eléctrico",
+  "Atención: cargas suspendidas",
+  "Atención: maquinaria en movimiento",
+  "Mantener cerradas las puertas de sectorización (barrera antipolvo)",
+  "Respetar el balizamiento y la señalización provisional",
+  "Mantener orden y limpieza; retirar escombro a diario",
+  "Higiene de manos al salir de la zona (entorno hospitalario)",
+  "No obstaculizar recorridos de evacuación ni salidas de emergencia",
+  "Comunicar cualquier incidente al recurso preventivo",
+];
+function allRecs(){ return BUILTIN_RECS.concat(data.customRecs || []); }
+
+function applyConfig(){
+  FLOORS = (Array.isArray(data.floors) && data.floors.length) ? data.floors : DEFAULT_FLOORS.slice();
+  CATS = Object.assign({}, BUILTIN_CATS, data.customCats || {});
+  if(!FLOORS.find(f=>f.id===state.floor)) state.floor = FLOORS[0].id;
+}
+function catOf(key){
+  return CATS[key] || {name:key, color:"#7a7f88", icon:"■"};
+}
 
 const LS_DATA = "obraHSJD.data";
 const LS_GH   = "obraHSJD.github";
@@ -703,14 +920,15 @@ function renderZones(save=true){
   zs.forEach(z=>{
     const ptsAbs = z.pts.map(p=>[p[0]*state.imgW, p[1]*state.imgH]);
     const path = ptsAbs.map(p=>p.join(",")).join(" ");
+    const C = catOf(z.cat);
     const g = svgEl("g",{class:"zone"+(state.selectedZone===z.id?" selected":"")});
-    g.appendChild(svgEl("polygon",{points:path, fill:`url(#hatch-${z.cat})`,
-      stroke:CATS[z.cat].color, "stroke-width":3}));
+    g.appendChild(svgEl("polygon",{points:path, fill:CATS[z.cat]?`url(#hatch-${z.cat})`:C.color+"55",
+      stroke:C.color, "stroke-width":3}));
     // etiqueta en el centroide
     const c = centroid(ptsAbs);
     const label = svgEl("text",{x:c[0], y:c[1], class:"zone-label",
       "font-size": Math.max(14, Math.min(26, polySize(ptsAbs)/8))});
-    label.textContent = CATS[z.cat].icon + (z.name ? " "+z.name : "");
+    label.textContent = C.icon + (z.name ? " "+z.name : "");
     g.appendChild(label);
     // la selección se resuelve por geometría en endPointer (compatible táctil)
     ov.appendChild(g);
@@ -775,11 +993,18 @@ function selectZone(id){
   state.selectedZone = id;
   const z = data.zones.find(z=>z.id===id);
   if(!z) return;
-  $("#zcCat").textContent = CATS[z.cat].icon+" "+CATS[z.cat].name;
-  $("#zcCat").className = "cat tag-"+z.cat;
-  $("#zoneCard").style.borderLeftColor = CATS[z.cat].color;
+  const C = catOf(z.cat);
+  $("#zcCat").textContent = C.icon+" "+C.name;
+  $("#zcCat").className = "cat";
+  $("#zcCat").style.color = C.color;
+  $("#zoneCard").style.borderLeftColor = C.color;
   $("#zcName").textContent = z.name || "(sin nombre)";
   $("#zcNotes").textContent = z.notes || "";
+  const rl = $("#zcRecs"); rl.innerHTML = "";
+  (z.recs||[]).forEach(r=>{
+    const li = document.createElement("li"); li.textContent = r; rl.appendChild(li);
+  });
+  rl.style.display = (z.recs && z.recs.length) ? "grid" : "none";
   $("#zcDates").textContent = "Vigencia: " + (z.from?fmtDate(z.from):"—") + " → " + (z.to?fmtDate(z.to):"indefinida");
   $("#zcActions").hidden = !state.admin;
   $("#zoneCard").classList.add("show");
@@ -792,11 +1017,13 @@ function hideZoneCard(){
 }
 $("#zcClose").onclick = hideZoneCard;
 $("#zcDelete").onclick = ()=>{
+  if(!state.admin) return;
   if(!confirm("¿Eliminar esta zona señalizada?")) return;
   data.zones = data.zones.filter(z=>z.id!==state.selectedZone);
   saveLocal(); hideZoneCard(); renderZones(); renderLegend(); toast("Zona eliminada");
 };
 $("#zcEdit").onclick = ()=>{
+  if(!state.admin) return;
   const z = data.zones.find(z=>z.id===state.selectedZone);
   if(!z) return;
   state.editingZone = z.id;
@@ -805,6 +1032,7 @@ $("#zcEdit").onclick = ()=>{
 
 /* ---------- dibujo ---------- */
 $("#btnDraw").onclick = ()=>{
+  if(!state.admin) return;
   state.drawing = true; state.draftPts = [];
   hideZoneCard();
   $("#drawHint").style.display="block";
@@ -859,6 +1087,38 @@ function roomsInDraft(){
   return rooms.filter(r=>pointInPoly(r.x, r.y, poly));
 }
 
+function buildRecsBox(checked){
+  const box = $("#zmRecs"); box.innerHTML = "";
+  const customs = new Set(data.customRecs || []);
+  const set = new Set(checked || []);
+  // primero las marcadas que ya no estén en catálogo (zonas antiguas)
+  const catalog = allRecs();
+  const extra = [...set].filter(r => !catalog.includes(r));
+  catalog.concat(extra).forEach(r => {
+    const l = document.createElement("label");
+    l.className = "rec-item" + (customs.has(r) || extra.includes(r) ? " custom" : "");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = r; cb.checked = set.has(r);
+    l.appendChild(cb);
+    l.appendChild(document.createTextNode(r));
+    box.appendChild(l);
+  });
+}
+$("#zmAddRec").onclick = ()=>{
+  const t = $("#zmNewRec").value.trim();
+  if(!t) return;
+  data.customRecs = data.customRecs || [];
+  if(!allRecs().includes(t)) data.customRecs.push(t);
+  saveLocal();
+  // reconstruir conservando lo marcado + la nueva
+  const checked = [...$("#zmRecs").querySelectorAll("input:checked")].map(i=>i.value);
+  checked.push(t);
+  buildRecsBox(checked);
+  $("#zmNewRec").value = "";
+  $("#zmRecs").scrollTop = $("#zmRecs").scrollHeight;
+};
+$("#zmNewRec").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#zmAddRec").click(); }});
+
 function openZoneModal(zone){
   zmCat = zone ? zone.cat : "obra";
   buildCatGrid();
@@ -874,21 +1134,26 @@ function openZoneModal(zone){
   }
   $("#zmName").value = zone ? (zone.name||"") : prefill;
   $("#zmNotes").value = zone ? (zone.notes||"") : "";
+  buildRecsBox(zone ? (zone.recs||[]) : []);
+  $("#zmNewRec").value = "";
   $("#zmFrom").value = zone ? (zone.from||"") : state.date;
   $("#zmTo").value = zone ? (zone.to||"") : "";
   $("#zoneModal").classList.add("show");
 }
 $("#zmSave").onclick = ()=>{
+  if(!state.admin) return;
   const editing = state.editingZone && data.zones.find(z=>z.id===state.editingZone);
   if(editing){
     Object.assign(editing,{cat:zmCat, name:$("#zmName").value.trim(),
-      notes:$("#zmNotes").value.trim(), from:$("#zmFrom").value||null, to:$("#zmTo").value||null});
+      notes:$("#zmNotes").value.trim(), from:$("#zmFrom").value||null, to:$("#zmTo").value||null,
+      recs:[...$("#zmRecs").querySelectorAll("input:checked")].map(i=>i.value)});
     toast("Zona actualizada — arrastra los vértices para ajustar la forma");
     setTimeout(()=>selectZone(editing.id), 50);
   } else {
     data.zones.push({
       id:uid(), floor:state.floor, cat:zmCat,
       name:$("#zmName").value.trim(), notes:$("#zmNotes").value.trim(),
+      recs:[...$("#zmRecs").querySelectorAll("input:checked")].map(i=>i.value),
       from:$("#zmFrom").value||null, to:$("#zmTo").value||null,
       pts: state.draftPts.map(p=>[+(p[0]/state.imgW).toFixed(5), +(p[1]/state.imgH).toFixed(5)]),
     });
@@ -936,17 +1201,26 @@ function renderPinDots(){
     box.appendChild(d);
   }
 }
+function isDesktop(){
+  // Edición solo desde escritorio: puntero de precisión + hover real + pantalla ancha.
+  return matchMedia("(pointer:fine)").matches
+      && matchMedia("(hover:hover)").matches
+      && window.innerWidth >= 1000;
+}
 function adminAllowed(){
-  return new URLSearchParams(location.search).get("admin")==="1"
-      || sessionStorage.getItem(LS_ADMIN)==="1";
+  return isDesktop() &&
+        (new URLSearchParams(location.search).get("admin")==="1"
+         || sessionStorage.getItem(LS_ADMIN)==="1");
 }
 $("#btnAdmin").onclick = ()=>{
+  if(!isDesktop()){ toast("La edición solo está disponible desde un ordenador"); return; }
   if(state.admin) return;
   if(sessionStorage.getItem(LS_ADMIN)==="1"){ enterAdmin(); return; }
   pinBuf=""; renderPinDots(); buildPinPad();
   $("#pinModal").classList.add("show");
 };
 function enterAdmin(){
+  if(!isDesktop()) return;
   state.admin = true; document.body.classList.add("admin");
   toast("Modo administrador activo");
   renderZones();
@@ -974,7 +1248,7 @@ $("#importFile").addEventListener("change", e=>{
     try{
       const d = JSON.parse(r.result);
       if(!Array.isArray(d.zones)) throw new Error("formato");
-      data = d; saveLocal(); renderZones(); renderLegend();
+      data = d; saveLocal(); applyConfig(); renderFloorTabs(); loadFloor(); renderLegend();
       toast("Datos importados ("+d.zones.length+" zonas)");
     }catch(err){ toast("El fichero no es un zonas.json válido"); }
   };
@@ -992,26 +1266,34 @@ $("#btnPublish").onclick = ()=>{
   $("#ghBranch").value = s.branch||"main"; $("#ghToken").value = s.token||"";
   $("#pubModal").classList.add("show");
 };
+async function ghPut(path, base64Content, message){
+  const s = ghSettings();
+  if(!s.owner||!s.repo||!s.token) throw new Error("Configura GitHub en ☁ Publicar");
+  const api = `https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`;
+  const headers = {Authorization:"Bearer "+s.token, Accept:"application/vnd.github+json"};
+  let sha = null;
+  const g = await fetch(api+"?ref="+(s.branch||"main"),{headers});
+  if(g.ok) sha = (await g.json()).sha;
+  const body = {message, content: base64Content, branch: s.branch||"main"};
+  if(sha) body.sha = sha;
+  const p = await fetch(api,{method:"PUT",headers,body:JSON.stringify(body)});
+  if(!p.ok){ const err=await p.json().catch(()=>({})); throw new Error(err.message||("HTTP "+p.status)); }
+}
+async function publishData(msg){
+  data.updated = new Date().toISOString();
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
+  await ghPut("data/zonas.json", b64, msg || ("Actualización de zonas de obra — "+state.date));
+  localStorage.setItem(LS_DATA, JSON.stringify(data));
+  state.dirty = false;
+}
 $("#pubGo").onclick = async ()=>{
   const s = {owner:$("#ghOwner").value.trim(), repo:$("#ghRepo").value.trim(),
              branch:$("#ghBranch").value.trim()||"main", token:$("#ghToken").value.trim()};
   if(!s.owner||!s.repo||!s.token) return toast("Faltan datos del repositorio");
   localStorage.setItem(LS_GH, JSON.stringify(s));
-  const api = `https://api.github.com/repos/${s.owner}/${s.repo}/contents/data/zonas.json`;
-  const headers = {Authorization:"Bearer "+s.token, Accept:"application/vnd.github+json"};
   try{
     toast("Publicando…");
-    let sha = null;
-    const g = await fetch(api+"?ref="+s.branch,{headers});
-    if(g.ok) sha = (await g.json()).sha;
-    data.updated = new Date().toISOString();
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
-    const body = {message:"Actualización de zonas de obra — "+state.date, content, branch:s.branch};
-    if(sha) body.sha = sha;
-    const p = await fetch(api,{method:"PUT",headers,body:JSON.stringify(body)});
-    if(!p.ok){ const err=await p.json().catch(()=>({})); throw new Error(err.message||p.status); }
-    localStorage.setItem(LS_DATA, JSON.stringify(data));
-    state.dirty = false;
+    await publishData();
     $("#pubModal").classList.remove("show");
     toast("Publicado ✓ — visible en unos segundos");
   }catch(err){
@@ -1047,7 +1329,212 @@ $("#qrPrint").onclick = ()=>{
   w.document.close(); w.print();
 };
 
-/* ---------- cierre de modales ---------- */
+/* ---------- nueva categoría (solo admin escritorio) ---------- */
+$("#btnNewCat").onclick = ()=>{
+  if(!state.admin) return;
+  $("#ncName").value=""; $("#ncIcon").value=""; $("#ncColor").value="#c2185b";
+  $("#catModal").classList.add("show");
+};
+$("#ncSave").onclick = ()=>{
+  if(!state.admin) return;
+  const name = $("#ncName").value.trim();
+  if(!name) return toast("Pon un nombre a la categoría");
+  let key = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+                .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,24) || "cat";
+  while(CATS[key]) key += "2";
+  data.customCats = data.customCats || {};
+  data.customCats[key] = {name, color:$("#ncColor").value, icon:($("#ncIcon").value.trim()||"◆")};
+  saveLocal(); applyConfig();
+  renderZones(); renderLegend();
+  $("#catModal").classList.remove("show");
+  toast(`Categoría «${name}» creada — recuerda Publicar`);
+};
+
+/* ---------- gestión de planos (solo admin escritorio) ---------- */
+$("#btnPlanos").onclick = ()=>{
+  if(!state.admin) return;
+  const sel = $("#rpFloor"); sel.innerHTML="";
+  FLOORS.forEach(f=>{
+    const o=document.createElement("option"); o.value=f.id; o.textContent=f.label+" — "+f.name;
+    sel.appendChild(o);
+  });
+  $("#planModal").classList.add("show");
+};
+function readAsBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(",")[1]);
+    r.onerror=()=>rej(new Error("No se pudo leer el fichero"));
+    r.readAsDataURL(file);
+  });
+}
+$("#npAdd").onclick = async ()=>{
+  if(!state.admin) return;
+  const label=$("#npLabel").value.trim(), name=$("#npName").value.trim(), file=$("#npFile").files[0];
+  if(!label||!name||!file) return toast("Completa etiqueta, nombre e imagen");
+  const id = "up-" + name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+             .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,20) + "-" + Date.now().toString(36);
+  const ext = file.type==="image/png" ? "png" : "jpeg";
+  const path = `planos/${id}.${ext}`;
+  try{
+    toast("Subiendo plano…");
+    const b64 = await readAsBase64(file);
+    await ghPut(path, b64, "Nuevo plano: "+name);
+    if(!Array.isArray(data.floors) || !data.floors.length) data.floors = FLOORS.slice();
+    data.floors.push({id, label, name, img:path});
+    saveLocal(); applyConfig();
+    await publishData("Nueva planta: "+name);
+    renderFloorTabs();
+    $("#npLabel").value=""; $("#npName").value=""; $("#npFile").value="";
+    toast("Planta añadida y publicada ✓");
+  }catch(err){ toast("Error: "+err.message); }
+};
+$("#rpGo").onclick = async ()=>{
+  if(!state.admin) return;
+  const fid=$("#rpFloor").value, file=$("#rpFile").files[0];
+  const f = FLOORS.find(x=>x.id===fid);
+  if(!f||!file) return toast("Elige planta e imagen");
+  try{
+    toast("Subiendo plano…");
+    const b64 = await readAsBase64(file);
+    // conserva la ruta para no romper zonas ni miniaturas personalizadas
+    await ghPut(f.img, b64, "Plano actualizado: "+f.name);
+    toast("Plano de «"+f.label+"» reemplazado ✓ — visible en unos segundos");
+    if(f.id===state.floor) loadFloor();
+  }catch(err){ toast("Error: "+err.message); }
+};
+
+/* ---------- vista 3D isométrica ---------- */
+let isoRX = 57, isoRZ = 42, isoDragStart = null;
+function applyIsoRot(){
+  $("#isoStack").style.transform = `rotateX(${isoRX}deg) rotateZ(${isoRZ}deg)`;
+}
+function build3d(){
+  const stack = $("#isoStack"); stack.innerHTML = "";
+  const gap = Math.min(64, 340/FLOORS.length);
+  FLOORS.forEach((f,i)=>{
+    const fl = document.createElement("div");
+    fl.className = "iso-floor";
+    fl.style.transform = `translateZ(${i*gap}px)`;
+    const sheet = document.createElement("div"); sheet.className="iso-sheet";
+    const img = document.createElement("img");
+    img.src = f.thumb || f.img; img.alt = f.name; img.loading = "lazy";
+    sheet.appendChild(img);
+    // zonas vigentes de esta planta, en coordenadas normalizadas
+    const zs = data.zones.filter(z=>z.floor===f.id && zoneActiveOn(z,state.date));
+    if(zs.length){
+      const svg = svgEl("svg",{viewBox:"0 0 1 1", preserveAspectRatio:"none"});
+      zs.forEach(z=>{
+        const C = catOf(z.cat);
+        svg.appendChild(svgEl("polygon",{
+          points: z.pts.map(p=>p.join(",")).join(" "),
+          fill: C.color+"66", stroke: C.color, "stroke-width": .006
+        }));
+      });
+      sheet.appendChild(svg);
+    }
+    const tag = document.createElement("span");
+    tag.className = "iso-tag"; tag.textContent = f.label;
+    fl.appendChild(sheet); fl.appendChild(tag);
+    fl.addEventListener("click", ()=>{
+      if(iso3dMoved) return;
+      close3d();
+      if(state.floor!==f.id){ state.floor=f.id; renderFloorTabs(); loadFloor(); hideZoneCard(); }
+    });
+    stack.appendChild(fl);
+  });
+  applyIsoRot();
+}
+function open3d(){ build3d(); $("#iso3d").hidden = false; }
+function close3d(){ $("#iso3d").hidden = true; }
+$("#btn3d").onclick = open3d;
+$("#isoClose").onclick = close3d;
+let iso3dMoved = false;
+const isoScene = $("#isoScene");
+isoScene.addEventListener("pointerdown", e=>{
+  isoScene.setPointerCapture(e.pointerId);
+  isoDragStart = {x:e.clientX, y:e.clientY, rx:isoRX, rz:isoRZ};
+  iso3dMoved = false;
+});
+isoScene.addEventListener("pointermove", e=>{
+  if(!isoDragStart) return;
+  const dx = e.clientX-isoDragStart.x, dy = e.clientY-isoDragStart.y;
+  if(Math.hypot(dx,dy)>8) iso3dMoved = true;
+  if(iso3dMoved){
+    isoRZ = isoDragStart.rz + dx*0.35;
+    isoRX = Math.min(78, Math.max(30, isoDragStart.rx - dy*0.25));
+    applyIsoRot();
+  }
+});
+["pointerup","pointercancel"].forEach(ev=> isoScene.addEventListener(ev, ()=>{
+  isoDragStart=null; setTimeout(()=>{iso3dMoved=false;},50);
+}));
+
+/* ---------- listado imprimible ---------- */
+let listSort = {key:"floor", dir:1};
+function floorIdx(id){ const i=FLOORS.findIndex(f=>f.id===id); return i<0?99:i; }
+function openList(){
+  const sf=$("#lfFloor"), sc=$("#lfCat");
+  sf.length=1; sc.length=1;
+  FLOORS.forEach(f=>{ const o=document.createElement("option"); o.value=f.id; o.textContent=f.name; sf.appendChild(o); });
+  Object.keys(CATS).forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=catOf(k).icon+" "+catOf(k).name; sc.appendChild(o); });
+  renderList();
+  $("#listModal").classList.add("show");
+}
+function renderList(){
+  const ff=$("#lfFloor").value, fc=$("#lfCat").value, vig=$("#lfVigentes").checked;
+  let rows = data.zones.filter(z=>
+    (!ff || z.floor===ff) && (!fc || z.cat===fc) && (!vig || zoneActiveOn(z, state.date)));
+  const val = {
+    floor: z=>floorIdx(z.floor),
+    cat:   z=>catOf(z.cat).name.toLowerCase(),
+    name:  z=>(z.name||"").toLowerCase(),
+    from:  z=>z.from||"0000",
+    to:    z=>z.to||"9999",
+  }[listSort.key];
+  rows.sort((a,b)=>{ const x=val(a),y=val(b); return (x<y?-1:x>y?1:0)*listSort.dir; });
+  const tb=$("#listTable tbody"); tb.innerHTML="";
+  rows.forEach(z=>{
+    const f=FLOORS.find(x=>x.id===z.floor), C=catOf(z.cat);
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${f?f.label+" · "+f.name:z.floor}</td>
+      <td class="catcell"><span class="swatch" style="background:${C.color}"></span>${C.icon} ${C.name}</td>
+      <td>${(z.name||"(sin nombre)")}${z.notes?`<div class="notes">${z.notes}</div>`:""}${
+        (z.recs&&z.recs.length)?`<div class="recs">🦺 ${z.recs.join(" · ")}</div>`:""}</td>
+      <td>${z.from?fmtDate(z.from):"—"}</td>
+      <td>${z.to?fmtDate(z.to):"indefinida"}</td>`;
+    tb.appendChild(tr);
+  });
+  // flechas de ordenación
+  document.querySelectorAll("#listTable th").forEach(th=>{
+    th.querySelector(".arrow").textContent =
+      th.dataset.k===listSort.key ? (listSort.dir>0?"▲":"▼") : "";
+  });
+  const head = $("#listModal .list-head-print") || (()=>{
+    const d=document.createElement("div"); d.className="list-head-print";
+    $("#listModal .modal").prepend(d); return d;
+  })();
+  head.innerHTML = `<h2 style="margin:0">Plan de obra — Hospital San Juan de Dios de Burgos</h2>
+    <div style="font-size:.85rem">Listado de zonas señalizadas · ${vig?("vigentes el "+fmtDate(state.date)):"todas las zonas"} · ${rows.length} zonas</div>`;
+}
+$("#btnList").onclick = openList;
+["lfFloor","lfCat","lfVigentes"].forEach(id=> $("#"+id).addEventListener("change", renderList));
+document.querySelectorAll("#listTable th").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k=th.dataset.k;
+    if(listSort.key===k) listSort.dir*=-1; else listSort={key:k, dir:1};
+    renderList();
+  });
+});
+$("#listPrint").onclick = ()=>{
+  document.body.classList.add("printing-list");
+  const done=()=>{ document.body.classList.remove("printing-list"); window.removeEventListener("afterprint",done); };
+  window.addEventListener("afterprint", done);
+  window.print();
+  setTimeout(done, 2000); // respaldo por si afterprint no dispara (iOS)
+};
+
+
 document.querySelectorAll(".modal-bg").forEach(m=>{
   m.addEventListener("pointerdown", e=>{ if(e.target===m) m.classList.remove("show"); });
   m.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> m.classList.remove("show"));
@@ -1058,6 +1545,7 @@ document.querySelectorAll(".modal-bg").forEach(m=>{
   state.date = todayISO();
   renderDate();
   await loadData();
+  applyConfig();
   renderFloorTabs();
   loadFloor();
   window.addEventListener("resize", fitView);
